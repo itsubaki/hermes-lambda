@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description:
+  lambda function of hermes
+
+Parameters:
+  ProjectName:
+    Description: ""
+    Type: String
+    Default: "hermes-lambda"
+  S3Bucket:
+    Description: ""
+    Type: String
+  S3Key:
+    Description: ""
+    Type: String
+
+Outputs:
+  LambdaFunction:
+    Value: !Ref LambdaFunction
+
+Resources:
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref ProjectName
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sts:AssumeRole"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+  LambdaFunction:
+    DependsOn:
+      - "IAMRole"
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+      FunctionName: !Ref ProjectName
+      Handler: !Ref ProjectName
+      Role: !GetAtt IAMRole.Arn
+      Runtime: go1.x
+      Timeout: 60
+
+  LambdaPermission:
+    DependsOn:
+      - "LambdaFunction"
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref LambdaFunction
+      Principal: "events.amazonaws.com"
