@@ -27,27 +27,22 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("calendar.Last period=%s: %v", period, err)
 	}
 
+	fmt.Println("serialize cost")
 	if err := cost.Serialize(dir, date); err != nil {
 		return fmt.Errorf("serialize cost: %v", err)
 	}
 
-	ac, err := cost.Deserialize(dir, date)
-	if err != nil {
-		return fmt.Errorf("deserialize cost: %v\n", err)
-	}
-
-	for _, a := range ac {
-		fmt.Println(a)
-	}
-
+	fmt.Println("serialize reservation")
 	if err := reservation.Serialize(dir, date); err != nil {
 		return fmt.Errorf("serialize reservation: %v", err)
 	}
 
+	fmt.Println("serialize usage")
 	if err := usage.Serialize(dir, date); err != nil {
 		return fmt.Errorf("serialize usage: %v", err)
 	}
 
+	fmt.Println("serialize pricing")
 	if err := pricing.Serialize(dir, region); err != nil {
 		return fmt.Errorf("serialize pricing: %v", err)
 	}
@@ -56,5 +51,7 @@ func handle(ctx context.Context) error {
 }
 
 func main() {
+	fmt.Println("start")
 	lambda.Start(handle)
+	fmt.Println("finished")
 }
