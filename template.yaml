@@ -35,6 +35,22 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: !Ref ProjectName
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeReserved*"
+                  - "rds:DescribeReserved*"
+                  - "elasticache:DescribeReserved*"
+                  - "redshift:DescribeReserved*"
+                  - "organizations:List*"
+                  - "organizations:Describe*"
+                  - "ce:Get*"
+                Resource:
+                  - "*"
 
   LambdaFunction:
     DependsOn:
@@ -48,7 +64,7 @@ Resources:
       Handler: !Ref ProjectName
       Role: !GetAtt IAMRole.Arn
       Runtime: go1.x
-      Timeout: 60
+      Timeout: 900
 
   LambdaPermission:
     DependsOn:
