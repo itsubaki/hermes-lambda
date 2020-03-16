@@ -3,22 +3,24 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/itsubaki/hermes/pkg/calendar"
 	"github.com/itsubaki/hermes/pkg/cost"
+	"github.com/itsubaki/hermes/pkg/pricing"
+	"github.com/itsubaki/hermes/pkg/reservation"
+	"github.com/itsubaki/hermes/pkg/usage"
 )
 
 func handle(ctx context.Context) error {
 	dir := "/tmp"
 	period := "1d"
-	//region := []string{
-	//	"ap-northeast-1",
-	//	"ap-southeast-1",
-	//	"us-west-1",
-	//	"us-west-2",
-	//}
+	region := []string{
+		"ap-northeast-1",
+		"ap-southeast-1",
+		"us-west-1",
+		"us-west-2",
+	}
 
 	date, err := calendar.Last(period)
 	if err != nil {
@@ -31,25 +33,24 @@ func handle(ctx context.Context) error {
 
 	ac, err := cost.Deserialize(dir, date)
 	if err != nil {
-		fmt.Printf("deserialize cost: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("deserialize cost: %v\n", err)
 	}
 
 	for _, a := range ac {
 		fmt.Println(a)
 	}
 
-	//if err := reservation.Serialize(dir, date); err != nil {
-	//	return fmt.Errorf("serialize reservation: %v", err)
-	//}
-	//
-	//if err := usage.Serialize(dir, date); err != nil {
-	//	return fmt.Errorf("serialize usage: %v", err)
-	//}
-	//
-	//if err := pricing.Serialize(dir, region); err != nil {
-	//	return fmt.Errorf("serialize pricing: %v", err)
-	//}
+	if err := reservation.Serialize(dir, date); err != nil {
+		return fmt.Errorf("serialize reservation: %v", err)
+	}
+
+	if err := usage.Serialize(dir, date); err != nil {
+		return fmt.Errorf("serialize usage: %v", err)
+	}
+
+	if err := pricing.Serialize(dir, region); err != nil {
+		return fmt.Errorf("serialize pricing: %v", err)
+	}
 
 	return nil
 }

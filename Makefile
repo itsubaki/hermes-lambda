@@ -4,6 +4,7 @@ HASH := $(shell git rev-parse HEAD)
 GOVERSION := $(shell go version)
 LDFLAGS := -X 'main.date=${DATE}' -X 'main.hash=${HASH}' -X 'main.goversion=${GOVERSION}'
 
+
 build:
 	GOOS=linux GOARCH=amd64 go build -o hermes-lambda
 	zip handler.zip hermes-lambda
