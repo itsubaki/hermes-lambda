@@ -55,7 +55,7 @@ func (r *UtilizationRepository) Exists(id string) bool {
 	return false
 }
 
-func (r *UtilizationRepository) Save(p *domain.Utilization) (domain.Utilization, error) {
+func (r *UtilizationRepository) Save(p *domain.Utilization) (*domain.Utilization, error) {
 	return p, nil
 }
 

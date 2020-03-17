@@ -61,7 +61,7 @@ func (r *PricingRepository) Exists(id string) bool {
 	return false
 }
 
-func (r *PricingRepository) Save(p *domain.Pricing) (domain.Pricing, error) {
+func (r *PricingRepository) Save(p *domain.Pricing) (*domain.Pricing, error) {
 	return p, nil
 }
 

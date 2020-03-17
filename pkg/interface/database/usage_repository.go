@@ -55,7 +55,7 @@ func (r *UsageRepository) Exists(id string) bool {
 	return false
 }
 
-func (r *UsageRepository) Save(p *domain.UsageQuantity) (domain.UsageQuantity, error) {
+func (r *UsageRepository) Save(p *domain.UsageQuantity) (*domain.UsageQuantity, error) {
 	return p, nil
 }
 

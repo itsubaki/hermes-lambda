@@ -6,10 +6,10 @@ LDFLAGS := -X 'main.date=${DATE}' -X 'main.hash=${HASH}' -X 'main.goversion=${GO
 
 build:
 	GOOS=linux GOARCH=amd64 go build -o hermes-lambda
-	zip handler.zip hermes-lambda
+	zip hermes-lambda.zip hermes-lambda
 
 upload:
-	aws s3 cp handler.zip s3://${S3Bucket}/lambda/hermes-lambda.zip
+	aws s3 cp hermes-lambda.zip s3://${S3Bucket}/lambda/hermes-lambda.zip
 
 deploy: build upload
 	aws cloudformation create-stack --region ap-northeast-1 --stack-name hermes-lambda --capabilities CAPABILITY_NAMED_IAM --template-body file://template.yaml \
