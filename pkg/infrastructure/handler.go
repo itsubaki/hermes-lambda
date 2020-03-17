@@ -3,7 +3,6 @@ package infrastructure
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -11,6 +10,7 @@ import (
 )
 
 type Handler struct {
+	// sql.DB use connection pooling
 	DB *sql.DB
 }
 
@@ -27,14 +27,12 @@ func NewHandler(driver, datasource, database string) database.Handler {
 		}
 
 		if err := db.Ping(); err != nil {
-			log.Printf("db ping: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
 		break
 	}
-	log.Printf("db connected")
 
 	q := fmt.Sprintf("create database if not exists %s", database)
 	if _, err := db.Exec(q); err != nil {
