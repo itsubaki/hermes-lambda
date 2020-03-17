@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/itsubaki/hermes-lambda/pkg/domain"
-
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
 )
 
-func TestAccountCost(t *testing.T) {
+func TestAccountCostRepository(t *testing.T) {
 	e := infrastructure.NewEnviron()
 	h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
