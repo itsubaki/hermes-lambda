@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/itsubaki/hermes/pkg/calendar"
@@ -13,45 +16,49 @@ import (
 )
 
 func handle(ctx context.Context) error {
-	dir := "/tmp"
-	period := "1d"
-	region := []string{
-		"ap-northeast-1",
-		"ap-southeast-1",
-		"us-west-1",
-		"us-west-2",
-	}
+	e := infrastructure.NewEnviron()
 
-	date, err := calendar.Last(period)
+	date, err := calendar.Last(e.Period)
 	if err != nil {
-		return fmt.Errorf("calendar.Last period=%s: %v", period, err)
+		return fmt.Errorf("calendar.Last period=%s: %v", e.Period, err)
 	}
 
-	fmt.Println("serialize cost")
-	if err := cost.Serialize(dir, date); err != nil {
+	// serialize
+	log.Println("start: serialize cost")
+	if err := cost.Serialize(e.Dir, date); err != nil {
 		return fmt.Errorf("serialize cost: %v", err)
 	}
+	log.Println("finished: serialize cost")
 
-	fmt.Println("serialize reservation")
-	if err := reservation.Serialize(dir, date); err != nil {
+	log.Println("start: serialize reservation")
+	if err := reservation.Serialize(e.Dir, date); err != nil {
 		return fmt.Errorf("serialize reservation: %v", err)
 	}
+	log.Println("finished: serialize reservation")
 
-	fmt.Println("serialize usage")
-	if err := usage.Serialize(dir, date); err != nil {
+	log.Println("start: serialize usage")
+	if err := usage.Serialize(e.Dir, date); err != nil {
 		return fmt.Errorf("serialize usage: %v", err)
 	}
+	log.Println("finished: serialize usage")
 
-	fmt.Println("serialize pricing")
-	if err := pricing.Serialize(dir, region); err != nil {
+	log.Println("start: serialize pricing")
+	if err := pricing.Serialize(e.Dir, e.Region); err != nil {
 		return fmt.Errorf("serialize pricing: %v", err)
 	}
+	log.Println("finished: serialize pricing")
+
+	// export to database
+	// TODO
+	// h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 
 	return nil
 }
 
 func main() {
-	fmt.Println("start")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	log.Println("start")
 	lambda.Start(handle)
-	fmt.Println("finished")
+	log.Println("finished")
 }
