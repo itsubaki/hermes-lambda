@@ -1,6 +1,10 @@
 package database
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/itsubaki/hermes-lambda/pkg/domain"
+)
 
 type PricingRepository struct {
 	Handler
@@ -47,4 +51,20 @@ func NewPricingRepository(h Handler) *PricingRepository {
 	return &PricingRepository{
 		Handler: h,
 	}
+}
+
+func (r *PricingRepository) List() ([]domain.Pricing, error) {
+	return make([]domain.Pricing, 0), nil
+}
+
+func (r *PricingRepository) Exists(id string) bool {
+	return false
+}
+
+func (r *PricingRepository) Save(p *domain.Pricing) (domain.Pricing, error) {
+	return p, nil
+}
+
+func (r *PricingRepository) Delete(id string) error {
+	return nil
 }

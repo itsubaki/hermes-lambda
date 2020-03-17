@@ -49,6 +49,49 @@ func NewAccountCostRepository(h Handler) *AccountCostRepository {
 	}
 }
 
+func (r *AccountCostRepository) List() ([]domain.AccountCost, error) {
+	cost := make([]domain.AccountCost, 0)
+	if err := r.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from account_cost")
+		if err != nil {
+			return fmt.Errorf("select * from account_cost: %v", err)
+		}
+		defer rows.Close()
+
+		var c domain.AccountCost
+		for rows.Next() {
+			if err := rows.Scan(
+				&c.ID,
+				&c.AccountID,
+				&c.Description,
+				&c.Date,
+				&c.Service,
+				&c.RecordType,
+				&c.UnblendedCostAmount,
+				&c.UnblendedCostUnit,
+				&c.BlendedCostAmount,
+				&c.BlendedCostUnit,
+				&c.AmortizedCostAmount,
+				&c.AmortizedCostUnit,
+				&c.NetAmortizedCostAmount,
+				&c.NetAmortizedCostUnit,
+				&c.NetUnblendedCostAmount,
+				&c.NetUnblendedCostUnit,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+		}
+
+		cost = append(cost, c)
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transction: %v", err)
+	}
+
+	return cost, nil
+}
+
 func (r *AccountCostRepository) Exists(id string) bool {
 	rows, err := r.Query("select 1 from account_cost where id=?", id)
 	if err != nil {
@@ -107,47 +150,4 @@ func (r *AccountCostRepository) Delete(id string) error {
 	}
 
 	return nil
-}
-
-func (r *AccountCostRepository) List() ([]domain.AccountCost, error) {
-	cost := make([]domain.AccountCost, 0)
-	if err := r.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from account_cost")
-		if err != nil {
-			return fmt.Errorf("select * from account_cost: %v", err)
-		}
-		defer rows.Close()
-
-		var c domain.AccountCost
-		for rows.Next() {
-			if err := rows.Scan(
-				&c.ID,
-				&c.AccountID,
-				&c.Description,
-				&c.Date,
-				&c.Service,
-				&c.RecordType,
-				&c.UnblendedCostAmount,
-				&c.UnblendedCostUnit,
-				&c.BlendedCostAmount,
-				&c.BlendedCostUnit,
-				&c.AmortizedCostAmount,
-				&c.AmortizedCostUnit,
-				&c.NetAmortizedCostAmount,
-				&c.NetAmortizedCostUnit,
-				&c.NetUnblendedCostAmount,
-				&c.NetUnblendedCostUnit,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-		}
-
-		cost = append(cost, c)
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transction: %v", err)
-	}
-
-	return cost, nil
 }

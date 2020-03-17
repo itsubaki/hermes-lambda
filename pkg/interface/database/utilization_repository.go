@@ -1,6 +1,10 @@
 package database
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/itsubaki/hermes-lambda/pkg/domain"
+)
 
 type UtilizationRepository struct {
 	Handler
@@ -41,4 +45,20 @@ func NewUtilizationRepository(h Handler) *UtilizationRepository {
 	return &UtilizationRepository{
 		Handler: h,
 	}
+}
+
+func (r *UtilizationRepository) List() ([]domain.Utilization, error) {
+	return make([]domain.Utilization, 0), nil
+}
+
+func (r *UtilizationRepository) Exists(id string) bool {
+	return false
+}
+
+func (r *UtilizationRepository) Save(p *domain.Utilization) (domain.Utilization, error) {
+	return p, nil
+}
+
+func (r *UtilizationRepository) Delete(id string) error {
+	return nil
 }
