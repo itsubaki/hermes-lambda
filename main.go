@@ -130,21 +130,21 @@ func handle(ctx context.Context) error {
 		}
 	}
 
-	// usage
+	// usage quantity
 	{
-		log.Println("start: serialize usage")
+		log.Println("start: serialize usage quantity")
 		if err := usage.Serialize(e.Dir, date); err != nil {
-			return fmt.Errorf("serialize cost: %v", err)
+			return fmt.Errorf("serialize usage quantity: %v", err)
 		}
 
-		log.Println("start: deserialize usage")
+		log.Println("start: deserialize usage quantity")
 		u, err := usage.Deserialize(e.Dir, date)
 		if err != nil {
-			return fmt.Errorf("deserialize cost: %v", err)
+			return fmt.Errorf("deserialize usage quantity: %v", err)
 		}
 
-		log.Println("start: export usage to database")
-		r := database.NewUsageRepository(h)
+		log.Println("start: export usage quantity to database")
+		r := database.NewUsageQuantityRepository(h)
 		for _, uu := range u {
 			o := &domain.UsageQuantity{
 				AccountID:      uu.AccountID,
@@ -166,12 +166,12 @@ func handle(ctx context.Context) error {
 			o.ID = hex.EncodeToString(sha[:])
 
 			if r.Exists(o.ID) {
-				log.Printf("usage already exists: %v", o.ID)
+				log.Printf("usage quantity already exists: %v", o.ID)
 				continue
 			}
 
 			if _, err := r.Save(o); err != nil {
-				return fmt.Errorf("save usgae: %v", err)
+				return fmt.Errorf("save usgae quantity: %v", err)
 			}
 		}
 	}
@@ -232,6 +232,7 @@ func handle(ctx context.Context) error {
 			}
 		}
 	}
+
 	return nil
 }
 

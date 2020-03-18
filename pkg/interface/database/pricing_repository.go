@@ -34,7 +34,7 @@ func NewPricingRepository(h Handler) *PricingRepository {
 				cache_engine				varchar(64),
 				database_engine				varchar(64),
 				offering_class				varchar(64),
-				normalization_size_factor	double,
+				normalization_size_factor	varchar(64),
 				index(lease_contract_length),
 				index(purchase_option)
 			)
