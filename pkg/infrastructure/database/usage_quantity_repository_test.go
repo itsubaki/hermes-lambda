@@ -8,11 +8,11 @@ import (
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
 )
 
-func TestUsageRepository(t *testing.T) {
+func TestUsageQuantityRepository(t *testing.T) {
 	e := infrastructure.NewEnviron()
 	h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
-	r := database.NewUsageRepository(h)
+	r := database.NewUsageQuantityRepository(h)
 
 	fmt.Println(r)
 }

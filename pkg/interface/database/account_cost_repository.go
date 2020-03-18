@@ -86,7 +86,7 @@ func (r *AccountCostRepository) List() ([]domain.AccountCost, error) {
 
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("transction: %v", err)
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return cost, nil

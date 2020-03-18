@@ -54,17 +54,112 @@ func NewPricingRepository(h Handler) *PricingRepository {
 }
 
 func (r *PricingRepository) List() ([]domain.Pricing, error) {
-	return make([]domain.Pricing, 0), nil
+	price := make([]domain.Pricing, 0)
+	if err := r.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from pricing")
+		if err != nil {
+			return fmt.Errorf("select * from pricnig: %v", err)
+		}
+		defer rows.Close()
+
+		var p domain.Pricing
+		for rows.Next() {
+			if err := rows.Scan(
+				&p.ID,
+				&p.Version,
+				&p.SKU,
+				&p.OfferTermCode,
+				&p.Region,
+				&p.InstanceType,
+				&p.UsageType,
+				&p.LeaseContractLength,
+				&p.PurchaseOption,
+				&p.OnDemand,
+				&p.ReservedQuantity,
+				&p.ReservedHrs,
+				&p.Tenancy,
+				&p.PreInstalled,
+				&p.Operation,
+				&p.OperatingSystem,
+				&p.CacheEngine,
+				&p.DatabaseEngine,
+				&p.OfferingClass,
+				&p.NormalizationSizeFactor,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+		}
+
+		price = append(price, p)
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return price, nil
 }
 
 func (r *PricingRepository) Exists(id string) bool {
+	rows, err := r.Query("select 1 from pricing where id=?", id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
 	return false
 }
 
 func (r *PricingRepository) Save(p *domain.Pricing) (*domain.Pricing, error) {
+	if err := r.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			`insert into pricing values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			p.ID,
+			p.Version,
+			p.SKU,
+			p.OfferTermCode,
+			p.Region,
+			p.InstanceType,
+			p.UsageType,
+			p.LeaseContractLength,
+			p.PurchaseOption,
+			p.OnDemand,
+			p.ReservedQuantity,
+			p.ReservedHrs,
+			p.Tenancy,
+			p.PreInstalled,
+			p.Operation,
+			p.OperatingSystem,
+			p.CacheEngine,
+			p.DatabaseEngine,
+			p.OfferingClass,
+			p.NormalizationSizeFactor,
+		); err != nil {
+			return fmt.Errorf("insert into pricing: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
 	return p, nil
 }
 
 func (r *PricingRepository) Delete(id string) error {
+	if err := r.Transact(func(tx Tx) error {
+		if _, err := tx.Exec("delete from pricing where id=?", id); err != nil {
+			return fmt.Errorf("delete from pricing: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("transaction: %v", err)
+	}
+
 	return nil
 }
