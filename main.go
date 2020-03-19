@@ -18,7 +18,7 @@ import (
 )
 
 func handle(ctx context.Context) error {
-	e := infrastructure.NewEnviron()
+	e := infrastructure.NewEnv()
 
 	date, err := calendar.Last(e.Period)
 	if err != nil {
@@ -71,7 +71,7 @@ func handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("pricing already exists: %v", o.ID)
+				log.Printf("pricing already exists: %#v", o)
 				continue
 			}
 
@@ -120,7 +120,7 @@ func handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("account cost already exists: %v", o.ID)
+				log.Printf("account cost already exists: %#v", o)
 				continue
 			}
 
@@ -167,7 +167,7 @@ func handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("usage quantity already exists: %v", o.ID)
+				log.Printf("usage quantity already exists: %#v", o)
 				continue
 			}
 
@@ -225,7 +225,7 @@ func handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("reseravtion utilization already exists: %v", o.ID)
+				log.Printf("reservation utilization already exists: %#v", o)
 				continue
 			}
 

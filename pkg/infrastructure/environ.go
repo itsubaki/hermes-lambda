@@ -14,7 +14,7 @@ type Environ struct {
 	Database   string
 }
 
-func DefaultEnviron() *Environ {
+func DefaultEnv() *Environ {
 	return &Environ{
 		Dir:    "/tmp",
 		Period: "1d",
@@ -30,8 +30,8 @@ func DefaultEnviron() *Environ {
 	}
 }
 
-func NewEnviron() *Environ {
-	e := DefaultEnviron()
+func NewEnv() *Environ {
+	e := DefaultEnv()
 
 	dir := os.Getenv("DIR")
 	if len(dir) > 0 {
@@ -45,7 +45,7 @@ func NewEnviron() *Environ {
 
 	region := os.Getenv("REGION")
 	if len(region) > 0 {
-		e.Region = append(e.Region, strings.Split(region, ",")...)
+		e.Region = strings.Split(region, ",")
 	}
 
 	driver := os.Getenv("DRIVER")

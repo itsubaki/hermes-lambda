@@ -8,18 +8,19 @@ import (
 	"github.com/speps/go-hashids"
 )
 
-func NewID(salt string) (string, error) {
-	sha := sha256.Sum256([]byte(salt))
+func NewID(seed string) (string, error) {
+	sha := sha256.Sum256([]byte(seed))
+	salt := hex.EncodeToString(sha[:])
 
 	hd := hashids.NewData()
-	hd.Salt = hex.EncodeToString(sha[:])
+	hd.Salt = salt
 
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
 		return "", fmt.Errorf("new hash: %v", err)
 	}
 
-	id, err := h.Encode([]int{1, 2, 3, 4})
+	id, err := h.Encode([]int{45, 434, 1313, 99})
 	if err != nil {
 		return "", fmt.Errorf("encode hash: %v", err)
 	}
