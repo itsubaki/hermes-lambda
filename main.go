@@ -145,21 +145,21 @@ func handle(ctx context.Context) error {
 
 		log.Println("export usage quantity to database")
 		r := database.NewUsageQuantityRepository(h)
-		for _, uu := range u {
+		for _, q := range u {
 			o := &domain.UsageQuantity{
-				AccountID:      uu.AccountID,
-				Description:    uu.Description,
-				Region:         uu.Region,
-				UsageType:      uu.UsageType,
-				Platform:       uu.Platform,
-				CacheEngine:    uu.CacheEngine,
-				DatabaseEngine: uu.DatabaseEngine,
-				Date:           uu.Date,
-				InstanceHour:   uu.InstanceHour,
-				InstanceNum:    uu.InstanceNum,
-				GByte:          uu.GByte,
-				Requests:       uu.Requests,
-				Unit:           uu.Unit,
+				AccountID:      q.AccountID,
+				Description:    q.Description,
+				Region:         q.Region,
+				UsageType:      q.UsageType,
+				Platform:       q.Platform,
+				CacheEngine:    q.CacheEngine,
+				DatabaseEngine: q.DatabaseEngine,
+				Date:           q.Date,
+				InstanceHour:   q.InstanceHour,
+				InstanceNum:    q.InstanceNum,
+				GByte:          q.GByte,
+				Requests:       q.Requests,
+				Unit:           q.Unit,
 			}
 
 			sha := sha256.Sum256([]byte(o.JSON()))
@@ -202,21 +202,21 @@ func handle(ctx context.Context) error {
 
 		log.Println("export reservation utilization to database")
 		r := database.NewUtilizationRepository(h)
-		for _, rr := range res {
+		for _, u := range res {
 			o := &domain.Utilization{
-				AccountID:        rr.AccountID,
-				Description:      rr.Description,
-				Region:           rr.Region,
-				InstanceType:     rr.InstanceType,
-				Platform:         rr.Platform,
-				CacheEngine:      rr.CacheEngine,
-				DatabaseEngine:   rr.DatabaseEngine,
-				DeploymentOption: rr.DeploymentOption,
-				Date:             rr.Date,
-				Hours:            rr.Hours,
-				Num:              rr.Num,
-				Percentage:       rr.Percentage,
-				CoveringCost:     rr.CoveringCost,
+				AccountID:        u.AccountID,
+				Description:      u.Description,
+				Region:           u.Region,
+				InstanceType:     u.InstanceType,
+				Platform:         u.Platform,
+				CacheEngine:      u.CacheEngine,
+				DatabaseEngine:   u.DatabaseEngine,
+				DeploymentOption: u.DeploymentOption,
+				Date:             u.Date,
+				Hours:            u.Hours,
+				Num:              u.Num,
+				Percentage:       u.Percentage,
+				CoveringCost:     u.CoveringCost,
 			}
 
 			sha := sha256.Sum256([]byte(o.JSON()))
