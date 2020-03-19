@@ -19,6 +19,7 @@ import (
 
 func handle(ctx context.Context) error {
 	e := infrastructure.NewEnv()
+	log.Printf("env=%#v", e)
 
 	date, err := calendar.Last(e.Period)
 	if err != nil {
@@ -197,8 +198,11 @@ func handle(ctx context.Context) error {
 		}
 
 		log.Println("add covering cost")
-		for _, w := range reservation.AddCoveringCost(plist, res) {
-			log.Println(w)
+		w := reservation.AddCoveringCost(plist, res)
+		if !e.SuppressWarning {
+			for _, ww := range w {
+				log.Printf("[WARN] %s", ww)
+			}
 		}
 
 		log.Println("export reservation utilization to database")

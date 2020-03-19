@@ -6,27 +6,29 @@ import (
 )
 
 type Environ struct {
-	Dir        string
-	Period     string
-	Region     []string
-	Driver     string
-	DataSource string
-	Database   string
+	Dir             string
+	Period          string
+	Region          []string
+	Driver          string
+	DataSource      string
+	Database        string
+	SuppressWarning bool
 }
 
 func DefaultEnv() *Environ {
 	return &Environ{
 		Dir:    "/tmp",
-		Period: "1d",
+		Period: "1m",
 		Region: []string{
 			"ap-northeast-1",
 			"ap-southeast-1",
 			"us-west-1",
 			"us-west-2",
 		},
-		Driver:     "mysql",
-		DataSource: "root:secret@tcp(127.0.0.1:3306)/",
-		Database:   "hermes",
+		Driver:          "mysql",
+		DataSource:      "root:secret@tcp(127.0.0.1:3306)/",
+		Database:        "hermes",
+		SuppressWarning: true,
 	}
 }
 
@@ -60,7 +62,12 @@ func NewEnv() *Environ {
 
 	database := os.Getenv("DATABASE")
 	if len(database) > 0 {
-		e.DataSource = database
+		e.Database = database
+	}
+
+	warning := os.Getenv("SUPPRESS_WARNING")
+	if warning == "FALSE" || warning == "false" {
+		e.SuppressWarning = false
 	}
 
 	return e
