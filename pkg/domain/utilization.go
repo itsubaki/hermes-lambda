@@ -1,6 +1,9 @@
 package domain
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Utilization struct {
 	ID               string
@@ -17,6 +20,16 @@ type Utilization struct {
 	Num              float64 `json:"num"`
 	Percentage       float64 `json:"percentage"`
 	CoveringCost     float64 `json:"covering_cost"` // ondemand cost
+}
+
+func (u *Utilization) GenID() error {
+	id, err := NewID(u.JSON())
+	if err != nil {
+		return fmt.Errorf("new id: %v", err)
+	}
+
+	u.ID = id
+	return nil
 }
 
 func (u Utilization) JSON() string {

@@ -1,6 +1,9 @@
 package domain
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Pricing struct {
 	ID                      string
@@ -23,6 +26,16 @@ type Pricing struct {
 	DatabaseEngine          string  `json:"database_engine,omitempty"`           // database
 	OfferingClass           string  `json:"offering_class,omitempty"`            // compute, database
 	NormalizationSizeFactor string  `json:"normalization_size_factor,omitempty"` // compute, database
+}
+
+func (p *Pricing) GenID() error {
+	id, err := NewID(p.JSON())
+	if err != nil {
+		return fmt.Errorf("new id: %v", err)
+	}
+
+	p.ID = id
+	return nil
 }
 
 func (p Pricing) JSON() string {

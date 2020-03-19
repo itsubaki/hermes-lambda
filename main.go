@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log"
 
@@ -68,8 +66,9 @@ func handle(ctx context.Context) error {
 				NormalizationSizeFactor: p.NormalizationSizeFactor,
 			}
 
-			sha := sha256.Sum256([]byte(o.JSON()))
-			o.ID = hex.EncodeToString(sha[:])
+			if err := o.GenID(); err != nil {
+				return fmt.Errorf("generate id: %v", err)
+			}
 
 			if r.Exists(o.ID) {
 				log.Printf("pricing already exists: %v", o.ID)
@@ -116,8 +115,9 @@ func handle(ctx context.Context) error {
 				NetUnblendedCostUnit:   c.NetUnblendedCost.Unit,
 			}
 
-			sha := sha256.Sum256([]byte(o.JSON()))
-			o.ID = hex.EncodeToString(sha[:])
+			if err := o.GenID(); err != nil {
+				return fmt.Errorf("generate id: %v", err)
+			}
 
 			if r.Exists(o.ID) {
 				log.Printf("account cost already exists: %v", o.ID)
@@ -162,8 +162,9 @@ func handle(ctx context.Context) error {
 				Unit:           q.Unit,
 			}
 
-			sha := sha256.Sum256([]byte(o.JSON()))
-			o.ID = hex.EncodeToString(sha[:])
+			if err := o.GenID(); err != nil {
+				return fmt.Errorf("generate id: %v", err)
+			}
 
 			if r.Exists(o.ID) {
 				log.Printf("usage quantity already exists: %v", o.ID)
@@ -219,8 +220,9 @@ func handle(ctx context.Context) error {
 				CoveringCost:     u.CoveringCost,
 			}
 
-			sha := sha256.Sum256([]byte(o.JSON()))
-			o.ID = hex.EncodeToString(sha[:])
+			if err := o.GenID(); err != nil {
+				return fmt.Errorf("generate id: %v", err)
+			}
 
 			if r.Exists(o.ID) {
 				log.Printf("reseravtion utilization already exists: %v", o.ID)

@@ -1,6 +1,9 @@
 package domain
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type UsageQuantity struct {
 	ID             string
@@ -17,6 +20,16 @@ type UsageQuantity struct {
 	GByte          float64 `json:"giga_byte,omitempty"`
 	Requests       int64   `json:"requests,omitempty"`
 	Unit           string  `json:"unit"`
+}
+
+func (u *UsageQuantity) GenID() error {
+	id, err := NewID(u.JSON())
+	if err != nil {
+		return fmt.Errorf("new id: %v", err)
+	}
+
+	u.ID = id
+	return nil
 }
 
 func (u UsageQuantity) JSON() string {
