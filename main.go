@@ -32,18 +32,18 @@ func handle(ctx context.Context) error {
 
 	// pricing
 	{
-		log.Println("start: serialize pricing")
+		log.Println("serialize pricing")
 		if err := pricing.Serialize(e.Dir, e.Region); err != nil {
 			return fmt.Errorf("serialize pricing: %v", err)
 		}
 
-		log.Println("start: deserialize pricing")
+		log.Println("deserialize pricing")
 		price, err := pricing.Deserialize(e.Dir, e.Region)
 		if err != nil {
 			return fmt.Errorf("deserialize pricing: %v\n", err)
 		}
 
-		log.Println("start: export pricing to database")
+		log.Println("export pricing to database")
 		r := database.NewPricingRepository(h)
 		for _, p := range price {
 			o := &domain.Pricing{
@@ -84,18 +84,18 @@ func handle(ctx context.Context) error {
 
 	// account cost
 	{
-		log.Println("start: serialize account cost")
+		log.Println("serialize account cost")
 		if err := cost.Serialize(e.Dir, date); err != nil {
 			return fmt.Errorf("serialize cost: %v", err)
 		}
 
-		log.Println("start: deserialize account cost")
+		log.Println("deserialize account cost")
 		ac, err := cost.Deserialize(e.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize cost: %v", err)
 		}
 
-		log.Println("start: export account cost to database")
+		log.Println("export account cost to database")
 		r := database.NewAccountCostRepository(h)
 		for _, c := range ac {
 			o := &domain.AccountCost{
@@ -132,18 +132,18 @@ func handle(ctx context.Context) error {
 
 	// usage quantity
 	{
-		log.Println("start: serialize usage quantity")
+		log.Println("serialize usage quantity")
 		if err := usage.Serialize(e.Dir, date); err != nil {
 			return fmt.Errorf("serialize usage quantity: %v", err)
 		}
 
-		log.Println("start: deserialize usage quantity")
+		log.Println("deserialize usage quantity")
 		u, err := usage.Deserialize(e.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize usage quantity: %v", err)
 		}
 
-		log.Println("start: export usage quantity to database")
+		log.Println("export usage quantity to database")
 		r := database.NewUsageQuantityRepository(h)
 		for _, uu := range u {
 			o := &domain.UsageQuantity{
@@ -178,29 +178,29 @@ func handle(ctx context.Context) error {
 
 	// reservation utilization
 	{
-		log.Println("start: serialize reservation utilization")
+		log.Println("serialize reservation utilization")
 		if err := reservation.Serialize(e.Dir, date); err != nil {
 			return fmt.Errorf("serialize reservation utilization: %v", err)
 		}
 
-		log.Println("start: deserialize reservation utilization")
+		log.Println("deserialize reservation utilization")
 		res, err := reservation.Deserialize(e.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize reservation utilization: %v", err)
 		}
 
-		log.Println("start: deserialize pricing")
+		log.Println("deserialize pricing")
 		plist, err := pricing.Deserialize(e.Dir, e.Region)
 		if err != nil {
 			return fmt.Errorf("desirialize pricing: %v\n", err)
 		}
 
-		log.Println("start: add covering cost")
+		log.Println("add covering cost")
 		for _, w := range reservation.AddCoveringCost(plist, res) {
 			log.Println(w)
 		}
 
-		log.Println("start: export reservation utilization to database")
+		log.Println("export reservation utilization to database")
 		r := database.NewUtilizationRepository(h)
 		for _, rr := range res {
 			o := &domain.Utilization{

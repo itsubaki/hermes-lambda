@@ -23,14 +23,20 @@ update: build upload
 	ParameterKey=S3Bucket,ParameterValue=${S3Bucket} \
 	ParameterKey=S3Key,ParameterValue=lambda/hermes-lambda.zip
 
-runmysql:
+mysql:
 	set -x
 	-docker pull mysql
 	-docker stop mysql
 	-docker rm mysql
 	docker run --name mysql -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
+	docker ps
 	# mysql -h127.0.0.1 -P3306 -uroot -psecret
 
+start-mysql:
+	set -x
+	docker start mysql
+	docker ps
+	# mysql -h127.0.0.1 -P3306 -uroot -psecret
 
 .PHONY: test
 test:
