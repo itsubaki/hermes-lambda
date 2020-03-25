@@ -12,6 +12,7 @@ type Environ struct {
 	Driver          string
 	DataSource      string
 	Database        string
+	BucketName      string
 	SuppressWarning bool
 }
 
@@ -28,6 +29,7 @@ func DefaultEnv() *Environ {
 		Driver:          "mysql",
 		DataSource:      "root:secret@tcp(127.0.0.1:3306)/",
 		Database:        "hermes",
+		BucketName:      "hermes-lambda",
 		SuppressWarning: true,
 	}
 }
@@ -63,6 +65,11 @@ func NewEnv() *Environ {
 	database := os.Getenv("DATABASE")
 	if len(database) > 0 {
 		e.Database = database
+	}
+
+	bucketName := os.Getenv("BUCKET_NAME")
+	if len(bucketName) > 0 {
+		e.BucketName = bucketName
 	}
 
 	warning := os.Getenv("SUPPRESS_WARNING")

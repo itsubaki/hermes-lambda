@@ -26,7 +26,10 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("calendar.Last period=%s: %v", e.Period, err)
 	}
 
-	h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
+	h, err := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
+	if err != nil {
+		return fmt.Errorf("new handler: %v", err)
+	}
 	defer h.Close()
 
 	// pricing
