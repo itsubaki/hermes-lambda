@@ -65,6 +65,7 @@ Resources:
       Role: !GetAtt IAMRole.Arn
       Runtime: go1.x
       Timeout: 900
+      MemorySize: 1280
 
   LambdaPermission:
     DependsOn:
