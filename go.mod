@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/aws/aws-lambda-go v1.15.0
-	github.com/aws/aws-sdk-go v1.29.27 // indirect
+	github.com/aws/aws-sdk-go v1.29.27
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/itsubaki/hermes v0.0.0-20200319023451-465be279ec8a
