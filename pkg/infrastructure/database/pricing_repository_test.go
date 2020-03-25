@@ -9,8 +9,8 @@ import (
 )
 
 func TestPricingRepository(t *testing.T) {
-	e := infrastructure.NewEnviron()
-	h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
+	e := infrastructure.NewEnv()
+	h, _ := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
 	r := database.NewPricingRepository(h)
 

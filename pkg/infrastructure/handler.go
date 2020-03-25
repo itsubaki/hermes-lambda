@@ -14,16 +14,16 @@ type Handler struct {
 	DB *sql.DB
 }
 
-func NewHandler(driver, datasource, database string) database.Handler {
+func NewHandler(driver, datasource, database string) (database.Handler, error) {
 	db, err := sql.Open(driver, datasource)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("open: %v", err)
 	}
 
 	start := time.Now()
 	for {
 		if time.Since(start) > 10*time.Minute {
-			panic("db ping time over")
+			return nil, fmt.Errorf("db ping time over")
 		}
 
 		if err := db.Ping(); err != nil {
@@ -36,22 +36,22 @@ func NewHandler(driver, datasource, database string) database.Handler {
 
 	q := fmt.Sprintf("create database if not exists %s", database)
 	if _, err := db.Exec(q); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("create database if not exists: %v", err)
 	}
 
 	if err := db.Close(); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("close: %v", err)
 	}
 
 	source := fmt.Sprintf("%s%s", datasource, database)
 	db2, err := sql.Open(driver, source)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("open: %v", err)
 	}
 
 	return &Handler{
 		DB: db2,
-	}
+	}, nil
 }
 
 func (h *Handler) Query(query string, args ...interface{}) (database.Rows, error) {

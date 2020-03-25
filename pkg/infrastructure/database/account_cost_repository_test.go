@@ -11,8 +11,8 @@ import (
 )
 
 func TestAccountCostRepository(t *testing.T) {
-	e := infrastructure.NewEnviron()
-	h := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
+	e := infrastructure.NewEnv()
+	h, _ := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
 	r := database.NewAccountCostRepository(h)
 
@@ -22,15 +22,15 @@ func TestAccountCostRepository(t *testing.T) {
 		Date:                   "2020-02-02",
 		Service:                "Amazon Elastic Compute Cloud - Compute",
 		RecordType:             "Usage",
-		UnblendedCostAmount:    1.234,
+		UnblendedCostAmount:    "1.234",
 		UnblendedCostUnit:      "USD",
-		BlendedCostAmount:      2.345,
+		BlendedCostAmount:      "2.345",
 		BlendedCostUnit:        "USD",
-		AmortizedCostAmount:    3.456,
+		AmortizedCostAmount:    "3.456",
 		AmortizedCostUnit:      "USD",
-		NetAmortizedCostAmount: 4.567,
+		NetAmortizedCostAmount: "4.567",
 		NetAmortizedCostUnit:   "USD",
-		NetUnblendedCostAmount: 5.678,
+		NetUnblendedCostAmount: "5.678",
 		NetUnblendedCostUnit:   "USD",
 	}
 
