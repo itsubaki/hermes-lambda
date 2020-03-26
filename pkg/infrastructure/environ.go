@@ -98,5 +98,6 @@ func NewEnv() *Environ {
 	if len(ignoreRecordType) > 0 {
 		e.Region = strings.Split(ignoreRecordType, ",")
 	}
+
 	return e
 }
