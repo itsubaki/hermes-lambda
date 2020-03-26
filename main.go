@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -40,8 +39,7 @@ func handle(ctx context.Context) error {
 	for _, p := range []string{"1d", "1m"} {
 		unblended, err := CreateUnblendedCost(p, e.BucketName, e.IgnoreRecordType)
 		if err != nil {
-			log.Printf("create unbelnded cost metrc values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("create unbelnded cost metrc values: %v", err)
 		}
 
 		values := make([]*mackerel.MetricValue, 0)
@@ -54,8 +52,7 @@ func handle(ctx context.Context) error {
 		}
 
 		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
-			log.Printf("post service metric values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("post service metric values: %v", err)
 		}
 	}
 
@@ -63,8 +60,7 @@ func handle(ctx context.Context) error {
 	for _, p := range []string{"1d", "1m"} {
 		covering, err := CreateRICoveringCost(p, e.BucketName, e.Region)
 		if err != nil {
-			log.Printf("create ri covering ondemand cost metrc values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("create ri covering ondemand cost metrc values: %v", err)
 		}
 
 		values := make([]*mackerel.MetricValue, 0)
@@ -77,8 +73,7 @@ func handle(ctx context.Context) error {
 		}
 
 		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
-			log.Printf("post service metric values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("post service metric values: %v", err)
 		}
 	}
 
@@ -86,14 +81,12 @@ func handle(ctx context.Context) error {
 	for _, p := range []string{"1d", "1m"} {
 		unblended, err := CreateUnblendedCost(p, e.BucketName, e.IgnoreRecordType)
 		if err != nil {
-			log.Printf("create unbelnded cost metrc values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("create unbelnded cost metrc values: %v", err)
 		}
 
 		covering, err := CreateRICoveringCost(p, e.BucketName, e.Region)
 		if err != nil {
-			log.Printf("create ri covering ondemand cost metrc values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("create ri covering ondemand cost metrc values: %v", err)
 		}
 
 		total := make(map[string]float64)
@@ -116,8 +109,7 @@ func handle(ctx context.Context) error {
 		}
 
 		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
-			log.Printf("post service metric values: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("post service metric values: %v", err)
 		}
 	}
 
@@ -129,8 +121,7 @@ func CreateRICoveringCost(period, bucketName string, region []string) (map[strin
 
 	date, err := calendar.Last(period)
 	if err != nil {
-		fmt.Printf("get last period=%s: %v", period, err)
-		os.Exit(1)
+		return out, fmt.Errorf("get last period=%s: %v", period, err)
 	}
 
 	s3, err := infrastructure.NewStorage()
