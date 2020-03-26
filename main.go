@@ -19,9 +19,13 @@ import (
 	mackerel "github.com/mackerelio/mackerel-client-go"
 )
 
+var suppress bool
+
 func handle(ctx context.Context) error {
 	e := infrastructure.NewEnv()
 	log.Printf("env=%#v", e)
+
+	suppress = e.SuppressWarning
 
 	period := strings.Split(e.Period, ", ")
 	for _, p := range period {
@@ -45,7 +49,7 @@ func handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range unblended {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.unblended_cost.%s.%s", period, k),
+				Name:  fmt.Sprintf("aws.unblended_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -66,7 +70,7 @@ func handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range covering {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.ri_covering_cost.%s.%s", period, k),
+				Name:  fmt.Sprintf("aws.ri_covering_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -102,7 +106,7 @@ func handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range total {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.rebate_cost.%s.%s", period, k),
+				Name:  fmt.Sprintf("aws.rebate_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -156,6 +160,10 @@ func CreateRICoveringCost(period, bucketName string, region []string) (map[strin
 		}
 
 		for _, e := range reservation.AddCoveringCost(price, util) {
+			if suppress {
+				continue
+			}
+
 			fmt.Printf("[WARN] %s\n", e)
 		}
 
