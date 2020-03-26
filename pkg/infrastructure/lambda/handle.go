@@ -73,7 +73,11 @@ func Handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("pricing already exists: %#v", o)
+				if e.SuppressWarning {
+					continue
+				}
+
+				log.Printf("[WARN] pricing already exists: %#v", o)
 				continue
 			}
 
@@ -122,7 +126,11 @@ func Handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("account cost already exists: %#v", o)
+				if e.SuppressWarning {
+					continue
+				}
+
+				log.Printf("[WARN] account cost already exists: %#v", o)
 				continue
 			}
 
@@ -169,7 +177,11 @@ func Handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("usage quantity already exists: %#v", o)
+				if e.SuppressWarning {
+					continue
+				}
+
+				log.Printf("[WARN] usage quantity already exists: %#v", o)
 				continue
 			}
 
@@ -230,7 +242,11 @@ func Handle(ctx context.Context) error {
 			}
 
 			if r.Exists(o.ID) {
-				log.Printf("reservation utilization already exists: %#v", o)
+				if e.SuppressWarning {
+					continue
+				}
+
+				log.Printf("[WARN] reservation utilization already exists: %#v", o)
 				continue
 			}
 
