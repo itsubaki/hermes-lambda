@@ -49,6 +49,7 @@ Resources:
                   - "organizations:List*"
                   - "organizations:Describe*"
                   - "ce:Get*"
+                  - "s3:*"
                 Resource:
                   - "*"
 
