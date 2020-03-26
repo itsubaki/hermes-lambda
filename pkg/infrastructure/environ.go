@@ -6,25 +6,32 @@ import (
 )
 
 type Environ struct {
-	Dir             string
-	Period          string
-	Region          []string
-	Driver          string
-	DataSource      string
-	Database        string
-	BucketName      string
-	SuppressWarning bool
+	Dir                 string
+	Period              string
+	Region              []string
+	Driver              string
+	DataSource          string
+	Database            string
+	BucketName          string
+	MackerelAPIKey      string
+	MackerelServiceName string
+	IgnoreRecordType    []string
+	SuppressWarning     bool
 }
 
 func DefaultEnv() *Environ {
 	return &Environ{
 		Dir:    "/tmp",
-		Period: "1m",
+		Period: "12m, 7d",
 		Region: []string{
 			"ap-northeast-1",
 			"ap-southeast-1",
 			"us-west-1",
 			"us-west-2",
+		},
+		IgnoreRecordType: []string{
+			"Tax",
+			"Enterprise Discount Program Discount",
 		},
 		Driver:          "mysql",
 		DataSource:      "root:secret@tcp(127.0.0.1:3306)/",
@@ -75,6 +82,21 @@ func NewEnv() *Environ {
 	warning := os.Getenv("SUPPRESS_WARNING")
 	if warning == "FALSE" || warning == "false" {
 		e.SuppressWarning = false
+	}
+
+	mackerelapikey := os.Getenv("MACKEREL_APIKEY")
+	if len(mackerelapikey) > 0 {
+		e.MackerelAPIKey = mackerelapikey
+	}
+
+	mackerelservicename := os.Getenv("MACKEREL_SERVICE_NAME")
+	if len(mackerelservicename) > 0 {
+		e.MackerelServiceName = mackerelservicename
+	}
+
+	ignoreRecordType := os.Getenv("IGNORE_RECORD_TYPE")
+	if len(ignoreRecordType) > 0 {
+		e.Region = strings.Split(ignoreRecordType, ",")
 	}
 
 	return e

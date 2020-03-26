@@ -4,11 +4,12 @@ go 1.12
 
 require (
 	github.com/aws/aws-lambda-go v1.15.0
-	github.com/aws/aws-sdk-go v1.29.27 // indirect
+	github.com/aws/aws-sdk-go v1.29.27
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/itsubaki/hermes v0.0.0-20200319023451-465be279ec8a
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
+	github.com/mackerelio/mackerel-client-go v0.9.1
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/urfave/cli/v2 v2.2.0 // indirect
