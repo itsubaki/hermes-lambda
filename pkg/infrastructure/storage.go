@@ -96,3 +96,16 @@ func (s *Storage) Read(bucketName, key string) ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
+func (s *Storage) Delete(bucketName, key string) error {
+	_, err := s.client.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(key),
+	})
+
+	if err != nil {
+		return fmt.Errorf("delete object=s3://%s/%s: %v", bucketName, key, err)
+	}
+
+	return nil
+}

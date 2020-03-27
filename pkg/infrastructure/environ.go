@@ -7,7 +7,7 @@ import (
 
 type Environ struct {
 	Dir                 string
-	Period              string
+	Period              []string
 	Region              []string
 	Driver              string
 	DataSource          string
@@ -21,8 +21,11 @@ type Environ struct {
 
 func DefaultEnv() *Environ {
 	return &Environ{
-		Dir:    "/tmp",
-		Period: "12m, 7d",
+		Dir: "/tmp",
+		Period: []string{
+			"1m",
+			"1d",
+		},
 		Region: []string{
 			"ap-northeast-1",
 			"ap-southeast-1",
@@ -51,7 +54,7 @@ func NewEnv() *Environ {
 
 	period := os.Getenv("PERIOD")
 	if len(period) > 0 {
-		e.Period = period
+		e.Period = strings.Split(period, ",")
 	}
 
 	region := os.Getenv("REGION")

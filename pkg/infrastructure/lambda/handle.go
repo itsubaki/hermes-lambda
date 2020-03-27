@@ -4,256 +4,130 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
-	"github.com/itsubaki/hermes-lambda/pkg/domain"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
-	"github.com/itsubaki/hermes/pkg/calendar"
-	"github.com/itsubaki/hermes/pkg/cost"
-	"github.com/itsubaki/hermes/pkg/pricing"
-	"github.com/itsubaki/hermes/pkg/reservation"
-	"github.com/itsubaki/hermes/pkg/usage"
+	mackerel "github.com/mackerelio/mackerel-client-go"
 )
 
 func Handle(ctx context.Context) error {
 	e := infrastructure.NewEnv()
 	log.Printf("env=%#v", e)
 
-	date, err := calendar.Last(e.Period)
+	s3, err := infrastructure.NewStorage()
 	if err != nil {
-		return fmt.Errorf("calendar.Last period=%s: %v", e.Period, err)
+		return fmt.Errorf("new storage: %v", err)
 	}
 
-	h, err := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
-	if err != nil {
-		return fmt.Errorf("new handler: %v", err)
+	if err := s3.CreateIfNotExists(e.BucketName); err != nil {
+		return fmt.Errorf("create bucket=%s if not exists: %v", e.BucketName, err)
 	}
-	defer h.Close()
 
-	// pricing
-	{
-		log.Println("serialize pricing")
-		if err := pricing.Serialize(e.Dir, e.Region); err != nil {
-			return fmt.Errorf("serialize pricing: %v", err)
+	p := &Pricing{Storage: s3}
+	if err := p.Fetch(e.BucketName, e.Region); err != nil {
+		return fmt.Errorf("write: %v", err)
+	}
+
+	uc := &UnblendedCost{Storage: s3}
+	for _, p := range e.Period {
+		if err := uc.Fetch(p, e.BucketName); err != nil {
+			return fmt.Errorf("fetch unlbended cost: %v", err)
 		}
 
-		log.Println("deserialize pricing")
-		price, err := pricing.Deserialize(e.Dir, e.Region)
+		a, err := uc.Aggregate(p, e.BucketName, e.IgnoreRecordType, e.Region)
 		if err != nil {
-			return fmt.Errorf("deserialize pricing: %v\n", err)
+			return fmt.Errorf("aggregate unblended cost: %v", err)
 		}
 
-		log.Println("export pricing to database")
-		r := database.NewPricingRepository(h)
-		for _, p := range price {
-			o := &domain.Pricing{
-				Version:                 p.Version,
-				SKU:                     p.SKU,
-				OfferTermCode:           p.OfferTermCode,
-				Region:                  p.Region,
-				InstanceType:            p.InstanceType,
-				UsageType:               p.UsageType,
-				LeaseContractLength:     p.LeaseContractLength,
-				PurchaseOption:          p.PurchaseOption,
-				OnDemand:                p.OnDemand,
-				ReservedQuantity:        p.ReservedQuantity,
-				ReservedHrs:             p.ReservedHrs,
-				Tenancy:                 p.Tenancy,
-				PreInstalled:            p.PreInstalled,
-				Operation:               p.Operation,
-				OperatingSystem:         p.OperatingSystem,
-				CacheEngine:             p.CacheEngine,
-				DatabaseEngine:          p.DatabaseEngine,
-				OfferingClass:           p.OfferingClass,
-				NormalizationSizeFactor: p.NormalizationSizeFactor,
-			}
+		values := make([]*mackerel.MetricValue, 0)
+		for k, v := range a {
+			values = append(values, &mackerel.MetricValue{
+				Name:  fmt.Sprintf("aws.unblended_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Time:  time.Now().Unix(),
+				Value: v,
+			})
+		}
 
-			if err := o.GenID(); err != nil {
-				return fmt.Errorf("generate id: %v", err)
-			}
-
-			if r.Exists(o.ID) {
-				if e.SuppressWarning {
-					continue
-				}
-
-				log.Printf("[WARN] pricing already exists: %#v", o)
-				continue
-			}
-
-			if _, err := r.Save(o); err != nil {
-				return fmt.Errorf("save pricing: %v", err)
-			}
+		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
+			return fmt.Errorf("post service metric values: %v", err)
 		}
 	}
 
-	// account cost
-	{
-		log.Println("serialize account cost")
-		if err := cost.Serialize(e.Dir, date); err != nil {
-			return fmt.Errorf("serialize cost: %v", err)
+	cc := &CoveringCost{Storage: s3, SuppressWarning: true}
+	for _, p := range e.Period {
+		if err := cc.Fetch(p, e.BucketName); err != nil {
+			return fmt.Errorf("fetch covering cost: %v", err)
 		}
 
-		log.Println("deserialize account cost")
-		ac, err := cost.Deserialize(e.Dir, date)
+		a, err := cc.Aggregate(p, e.BucketName, e.Region)
 		if err != nil {
-			return fmt.Errorf("deserialize cost: %v", err)
+			return fmt.Errorf("aggregate covering cost: %v", err)
 		}
 
-		log.Println("export account cost to database")
-		r := database.NewAccountCostRepository(h)
-		for _, c := range ac {
-			o := &domain.AccountCost{
-				AccountID:              c.AccountID,
-				Description:            c.Description,
-				Date:                   c.Date,
-				Service:                c.Service,
-				RecordType:             c.RecordType,
-				UnblendedCostAmount:    c.UnblendedCost.Amount,
-				UnblendedCostUnit:      c.UnblendedCost.Unit,
-				BlendedCostAmount:      c.BlendedCost.Amount,
-				BlendedCostUnit:        c.BlendedCost.Unit,
-				AmortizedCostAmount:    c.AmortizedCost.Amount,
-				AmortizedCostUnit:      c.AmortizedCost.Unit,
-				NetAmortizedCostAmount: c.NetAmortizedCost.Amount,
-				NetAmortizedCostUnit:   c.NetAmortizedCost.Unit,
-				NetUnblendedCostAmount: c.NetUnblendedCost.Amount,
-				NetUnblendedCostUnit:   c.NetUnblendedCost.Unit,
-			}
+		values := make([]*mackerel.MetricValue, 0)
+		for k, v := range a {
+			values = append(values, &mackerel.MetricValue{
+				Name:  fmt.Sprintf("aws.ri_covering_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Time:  time.Now().Unix(),
+				Value: v,
+			})
+		}
 
-			if err := o.GenID(); err != nil {
-				return fmt.Errorf("generate id: %v", err)
-			}
+		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
+			return fmt.Errorf("post service metric values: %v", err)
+		}
+	}
 
-			if r.Exists(o.ID) {
-				if e.SuppressWarning {
-					continue
-				}
+	for _, p := range e.Period {
+		unblended, err := uc.Aggregate(p, e.BucketName, e.IgnoreRecordType, e.Region)
+		if err != nil {
+			return fmt.Errorf("aggregate unblended cost: %v", err)
+		}
 
-				log.Printf("[WARN] account cost already exists: %#v", o)
-				continue
-			}
+		covering, err := cc.Aggregate(p, e.BucketName, e.Region)
+		if err != nil {
+			return fmt.Errorf("aggregate covering cost: %v", err)
+		}
 
-			if _, err := r.Save(o); err != nil {
-				return fmt.Errorf("save account cost: %v", err)
+		total := Add(unblended, covering)
+
+		values := make([]*mackerel.MetricValue, 0)
+		for k, v := range total {
+			values = append(values, &mackerel.MetricValue{
+				Name:  fmt.Sprintf("aws.rebate_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Time:  time.Now().Unix(),
+				Value: v,
+			})
+		}
+
+		if err := PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
+			return fmt.Errorf("post service metric values: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func Add(u, c map[string]float64) map[string]float64 {
+	total := make(map[string]float64)
+
+	for k, v := range u {
+		for kk, vv := range c {
+			if k == kk {
+				total[k] = v + vv
+				break
 			}
 		}
 	}
 
-	// usage quantity
-	{
-		log.Println("serialize usage quantity")
-		if err := usage.Serialize(e.Dir, date); err != nil {
-			return fmt.Errorf("serialize usage quantity: %v", err)
-		}
+	return total
+}
 
-		log.Println("deserialize usage quantity")
-		u, err := usage.Deserialize(e.Dir, date)
-		if err != nil {
-			return fmt.Errorf("deserialize usage quantity: %v", err)
-		}
-
-		log.Println("export usage quantity to database")
-		r := database.NewUsageQuantityRepository(h)
-		for _, q := range u {
-			o := &domain.UsageQuantity{
-				AccountID:      q.AccountID,
-				Description:    q.Description,
-				Region:         q.Region,
-				UsageType:      q.UsageType,
-				Platform:       q.Platform,
-				CacheEngine:    q.CacheEngine,
-				DatabaseEngine: q.DatabaseEngine,
-				Date:           q.Date,
-				InstanceHour:   q.InstanceHour,
-				InstanceNum:    q.InstanceNum,
-				GByte:          q.GByte,
-				Requests:       q.Requests,
-				Unit:           q.Unit,
-			}
-
-			if err := o.GenID(); err != nil {
-				return fmt.Errorf("generate id: %v", err)
-			}
-
-			if r.Exists(o.ID) {
-				if e.SuppressWarning {
-					continue
-				}
-
-				log.Printf("[WARN] usage quantity already exists: %#v", o)
-				continue
-			}
-
-			if _, err := r.Save(o); err != nil {
-				return fmt.Errorf("save usgae quantity: %v", err)
-			}
-		}
-	}
-
-	// reservation utilization
-	{
-		log.Println("serialize reservation utilization")
-		if err := reservation.Serialize(e.Dir, date); err != nil {
-			return fmt.Errorf("serialize reservation utilization: %v", err)
-		}
-
-		log.Println("deserialize reservation utilization")
-		res, err := reservation.Deserialize(e.Dir, date)
-		if err != nil {
-			return fmt.Errorf("deserialize reservation utilization: %v", err)
-		}
-
-		log.Println("deserialize pricing")
-		plist, err := pricing.Deserialize(e.Dir, e.Region)
-		if err != nil {
-			return fmt.Errorf("desirialize pricing: %v\n", err)
-		}
-
-		log.Println("add covering cost")
-		w := reservation.AddCoveringCost(plist, res)
-		if !e.SuppressWarning {
-			for _, ww := range w {
-				log.Printf("[WARN] %s", ww)
-			}
-		}
-
-		log.Println("export reservation utilization to database")
-		r := database.NewUtilizationRepository(h)
-		for _, u := range res {
-			o := &domain.Utilization{
-				AccountID:        u.AccountID,
-				Description:      u.Description,
-				Region:           u.Region,
-				InstanceType:     u.InstanceType,
-				Platform:         u.Platform,
-				CacheEngine:      u.CacheEngine,
-				DatabaseEngine:   u.DatabaseEngine,
-				DeploymentOption: u.DeploymentOption,
-				Date:             u.Date,
-				Hours:            u.Hours,
-				Num:              u.Num,
-				Percentage:       u.Percentage,
-				CoveringCost:     u.CoveringCost,
-			}
-
-			if err := o.GenID(); err != nil {
-				return fmt.Errorf("generate id: %v", err)
-			}
-
-			if r.Exists(o.ID) {
-				if e.SuppressWarning {
-					continue
-				}
-
-				log.Printf("[WARN] reservation utilization already exists: %#v", o)
-				continue
-			}
-
-			if _, err := r.Save(o); err != nil {
-				return fmt.Errorf("save reseravtion utilization: %v", err)
-			}
-		}
+func PostServiceMetricValues(apikey, service string, values []*mackerel.MetricValue) error {
+	client := mackerel.NewClient(apikey)
+	if err := client.PostServiceMetricValues(service, values); err != nil {
+		return fmt.Errorf("post service metirc values: %v\n", err)
 	}
 
 	return nil
