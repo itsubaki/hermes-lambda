@@ -3,6 +3,7 @@ package lambda
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
@@ -22,7 +23,6 @@ func (c *UnblendedCost) Fetch(period, bucketName string) error {
 
 	for i := range date {
 		key := fmt.Sprintf("cost/%s.json", date[i].String())
-
 		exists, err := c.Storage.Exists(bucketName, key)
 		if err != nil {
 			return fmt.Errorf("s3 exists: %v", err)
@@ -32,12 +32,14 @@ func (c *UnblendedCost) Fetch(period, bucketName string) error {
 			if err := c.Storage.Delete(bucketName, key); err != nil {
 				return fmt.Errorf("s3 delte s3://%s/%s: %v", bucketName, key, err)
 			}
+			log.Printf("deleted s3://%s/%s\n", bucketName, key)
 		}
 
 		ac, err := cost.Fetch(date[i].Start, date[i].End)
 		if err != nil {
 			return fmt.Errorf("fetch cost (%s, %s): %v\n", date[i].Start, date[i].End, err)
 		}
+		log.Printf("fetched s3://%s/%s\n", bucketName, key)
 
 		b, err := json.Marshal(ac)
 		if err != nil {
@@ -47,6 +49,7 @@ func (c *UnblendedCost) Fetch(period, bucketName string) error {
 		if err := c.Storage.Write(bucketName, key, b); err != nil {
 			return fmt.Errorf("write s3://%s/%s: %v", bucketName, key, err)
 		}
+		log.Printf("wrote s3://%s/%s\n", bucketName, key)
 	}
 
 	return nil
@@ -61,10 +64,12 @@ func (c *UnblendedCost) Aggregate(period, bucketName string, ignoreRecordType, r
 	}
 
 	for _, d := range date {
-		b, err := c.Storage.Read(bucketName, fmt.Sprintf("cost/%s.json", d.String()))
+		key := fmt.Sprintf("cost/%s.json", d.String())
+		b, err := c.Storage.Read(bucketName, key)
 		if err != nil {
 			return out, fmt.Errorf("s3 read: %v", err)
 		}
+		log.Printf("read s3://%s/%s\n", bucketName, key)
 
 		var cost []cost.AccountCost
 		if err := json.Unmarshal(b, &cost); err != nil {

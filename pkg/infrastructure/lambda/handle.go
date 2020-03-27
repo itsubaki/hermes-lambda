@@ -43,7 +43,7 @@ func Handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range a {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.unblended_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Name:  fmt.Sprintf("aws.%s.unblended_cost.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -68,7 +68,7 @@ func Handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range a {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.ri_covering_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Name:  fmt.Sprintf("aws.%s.ri_covering_cost.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -95,7 +95,7 @@ func Handle(ctx context.Context) error {
 		values := make([]*mackerel.MetricValue, 0)
 		for k, v := range total {
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.rebate_cost.%s.%s", p, strings.Replace(k, " ", "", -1)),
+				Name:  fmt.Sprintf("aws.%s.rebate_cost.%s", p, strings.Replace(k, " ", "", -1)),
 				Time:  time.Now().Unix(),
 				Value: v,
 			})
@@ -113,12 +113,12 @@ func Add(u, c map[string]float64) map[string]float64 {
 	total := make(map[string]float64)
 
 	for k, v := range u {
-		for kk, vv := range c {
-			if k == kk {
-				total[k] = v + vv
-				break
-			}
+		vv, ok := c[k]
+		if !ok {
+			continue
 		}
+
+		total[k] = v + vv
 	}
 
 	return total
