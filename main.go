@@ -215,9 +215,9 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("post service metric values: %v", err)
 	}
 
-	//if err := createTable(e); err != nil {
-	//	return fmt.Errorf("create bigquery table: %v", err)
-	//}
+	if err := createTable(e); err != nil {
+		log.Printf("create bigquery table: %v", err)
+	}
 
 	return nil
 }
