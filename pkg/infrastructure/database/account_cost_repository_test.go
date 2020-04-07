@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccountCostRepository(t *testing.T) {
-	e := infrastructure.NewEnv()
+	e := main.NewEnv()
 	h, _ := infrastructure.NewHandler(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
 	r := database.NewAccountCostRepository(h)

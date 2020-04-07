@@ -1,15 +1,14 @@
-package lambda
+package storage
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	"github.com/itsubaki/hermes/pkg/pricing"
 )
 
 type Pricing struct {
-	Storage *infrastructure.Storage
+	Storage *Storage
 }
 
 func (p *Pricing) Fetch(bucketName string, region []string) error {

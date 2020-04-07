@@ -14,7 +14,7 @@ type Handler struct {
 	DB *sql.DB
 }
 
-func NewHandler(driver, datasource, database string) (database.Handler, error) {
+func New(driver, datasource, database string) (database.Handler, error) {
 	db, err := sql.Open(driver, datasource)
 	if err != nil {
 		return nil, fmt.Errorf("open: %v", err)

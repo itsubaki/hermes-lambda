@@ -1,4 +1,4 @@
-package lambda
+package storage
 
 import (
 	"encoding/json"
@@ -6,13 +6,12 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	"github.com/itsubaki/hermes/pkg/calendar"
 	"github.com/itsubaki/hermes/pkg/cost"
 )
 
 type UnblendedCost struct {
-	Storage *infrastructure.Storage
+	Storage *Storage
 }
 
 func (c *UnblendedCost) Fetch(period, bucketName string) error {

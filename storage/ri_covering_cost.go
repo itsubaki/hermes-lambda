@@ -1,18 +1,17 @@
-package lambda
+package storage
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	"github.com/itsubaki/hermes/pkg/calendar"
 	"github.com/itsubaki/hermes/pkg/pricing"
 	"github.com/itsubaki/hermes/pkg/reservation"
 )
 
 type CoveringCost struct {
-	Storage         *infrastructure.Storage
+	Storage         *Storage
 	SuppressWarning bool
 }
 
