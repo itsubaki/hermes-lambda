@@ -1,4 +1,4 @@
-package storage
+package mackerel
 
 import (
 	"context"
@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	"github.com/mackerelio/mackerel-client-go"
 )
 
 func Handle(ctx context.Context) error {
-	e := infrastructure.NewEnv()
+	e := NewEnv()
 	log.Printf("env=%#v", e)
 
 	s3, err := NewStorage()

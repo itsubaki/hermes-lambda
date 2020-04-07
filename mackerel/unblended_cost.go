@@ -1,28 +1,27 @@
-package storage
+package mackerel
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/itsubaki/hermes/pkg/calendar"
-	"github.com/itsubaki/hermes/pkg/pricing"
-	"github.com/itsubaki/hermes/pkg/reservation"
+	"github.com/itsubaki/hermes/pkg/cost"
 )
 
-type CoveringCost struct {
-	Storage         *Storage
-	SuppressWarning bool
+type UnblendedCost struct {
+	Storage *Storage
 }
 
-func (c *CoveringCost) Fetch(period, bucketName string) error {
+func (c *UnblendedCost) Fetch(period, bucketName string) error {
 	date, err := calendar.Last(period)
 	if err != nil {
 		return fmt.Errorf("get last period=%s: %v", period, err)
 	}
 
 	for i := range date {
-		key := fmt.Sprintf("reservation/%s.json", date[i].String())
+		key := fmt.Sprintf("cost/%s.json", date[i].String())
 		exists, err := c.Storage.Exists(bucketName, key)
 		if err != nil {
 			return fmt.Errorf("s3 exists: %v", err)
@@ -35,9 +34,9 @@ func (c *CoveringCost) Fetch(period, bucketName string) error {
 			log.Printf("deleted s3://%s/%s\n", bucketName, key)
 		}
 
-		ac, err := reservation.Fetch(date[i].Start, date[i].End)
+		ac, err := cost.Fetch(date[i].Start, date[i].End)
 		if err != nil {
-			return fmt.Errorf("fetch reservation (%s, %s): %v\n", date[i].Start, date[i].End, err)
+			return fmt.Errorf("fetch cost (%s, %s): %v\n", date[i].Start, date[i].End, err)
 		}
 		log.Printf("fetched s3://%s/%s\n", bucketName, key)
 
@@ -55,7 +54,7 @@ func (c *CoveringCost) Fetch(period, bucketName string) error {
 	return nil
 }
 
-func (c *CoveringCost) Aggregate(period, bucketName string, region []string) (map[string]float64, error) {
+func (c *UnblendedCost) Aggregate(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
 	date, err := calendar.Last(period)
@@ -63,52 +62,43 @@ func (c *CoveringCost) Aggregate(period, bucketName string, region []string) (ma
 		return out, fmt.Errorf("get last period=%s: %v", period, err)
 	}
 
-	price := make([]pricing.Price, 0)
-	for _, r := range region {
-		key := fmt.Sprintf("pricing/%s.json", r)
-		b, err := c.Storage.Read(bucketName, key)
-		if err != nil {
-			return out, fmt.Errorf("s3 read: %v", err)
-		}
-		log.Printf("read s3://%s/%s\n", bucketName, key)
-
-		var p []pricing.Price
-		if err := json.Unmarshal(b, &p); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
-		}
-
-		price = append(price, p...)
-	}
-
 	for _, d := range date {
-		key := fmt.Sprintf("reservation/%s.json", d.String())
+		key := fmt.Sprintf("cost/%s.json", d.String())
 		b, err := c.Storage.Read(bucketName, key)
 		if err != nil {
 			return out, fmt.Errorf("s3 read: %v", err)
 		}
 		log.Printf("read s3://%s/%s\n", bucketName, key)
 
-		var util []reservation.Utilization
-		if err := json.Unmarshal(b, &util); err != nil {
+		var cost []cost.AccountCost
+		if err := json.Unmarshal(b, &cost); err != nil {
 			return out, fmt.Errorf("unmarshal: %v", err)
 		}
 
-		for _, e := range reservation.AddCoveringCost(price, util) {
-			if c.SuppressWarning {
+		for _, c := range cost {
+			ignore := false
+			for _, i := range ignoreRecordType {
+				if c.RecordType == i {
+					ignore = true
+					break
+				}
+			}
+
+			if ignore {
 				continue
 			}
 
-			fmt.Printf("[WARN] %s\n", e)
-		}
+			a, err := strconv.ParseFloat(c.UnblendedCost.Amount, 64)
+			if err != nil {
+				return out, fmt.Errorf("parse float: %v", err)
+			}
 
-		for _, u := range util {
-			v, ok := out[u.Description]
+			v, ok := out[c.Description]
 			if !ok {
-				out[u.Description] = u.CoveringCost
+				out[c.Description] = a
 				continue
 			}
-
-			out[u.Description] = v + u.CoveringCost
+			out[c.Description] = v + a
 		}
 	}
 

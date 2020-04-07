@@ -4,13 +4,13 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/itsubaki/hermes-lambda/storage"
+	"github.com/itsubaki/hermes-lambda/mackerel"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	log.Println("start")
-	lambda.Start(storage.Handle)
+	lambda.Start(mackerel.Handle)
 	log.Println("finished")
 }

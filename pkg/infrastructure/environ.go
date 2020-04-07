@@ -6,17 +6,12 @@ import (
 )
 
 type Environ struct {
-	Dir                 string
-	Period              []string
-	Region              []string
-	Driver              string
-	DataSource          string
-	Database            string
-	BucketName          string
-	MackerelAPIKey      string
-	MackerelServiceName string
-	IgnoreRecordType    []string
-	SuppressWarning     bool
+	Dir        string
+	Period     []string
+	Region     []string
+	Driver     string
+	DataSource string
+	Database   string
 }
 
 func DefaultEnv() *Environ {
@@ -32,15 +27,9 @@ func DefaultEnv() *Environ {
 			"us-west-1",
 			"us-west-2",
 		},
-		IgnoreRecordType: []string{
-			"Tax",
-			"Enterprise Discount Program Discount",
-		},
-		Driver:          "mysql",
-		DataSource:      "root:secret@tcp(127.0.0.1:3306)/",
-		Database:        "hermes",
-		BucketName:      "hermes-lambda",
-		SuppressWarning: true,
+		Driver:     "mysql",
+		DataSource: "root:secret@tcp(127.0.0.1:3306)/",
+		Database:   "hermes",
 	}
 }
 
@@ -75,31 +64,6 @@ func NewEnv() *Environ {
 	database := os.Getenv("DATABASE")
 	if len(database) > 0 {
 		e.Database = database
-	}
-
-	bucketName := os.Getenv("BUCKET_NAME")
-	if len(bucketName) > 0 {
-		e.BucketName = bucketName
-	}
-
-	warning := os.Getenv("SUPPRESS_WARNING")
-	if warning == "FALSE" || warning == "false" {
-		e.SuppressWarning = false
-	}
-
-	mackerelapikey := os.Getenv("MACKEREL_APIKEY")
-	if len(mackerelapikey) > 0 {
-		e.MackerelAPIKey = mackerelapikey
-	}
-
-	mackerelservicename := os.Getenv("MACKEREL_SERVICE_NAME")
-	if len(mackerelservicename) > 0 {
-		e.MackerelServiceName = mackerelservicename
-	}
-
-	ignoreRecordType := os.Getenv("IGNORE_RECORD_TYPE")
-	if len(ignoreRecordType) > 0 {
-		e.Region = strings.Split(ignoreRecordType, ",")
 	}
 
 	return e
