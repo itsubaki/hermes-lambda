@@ -1,4 +1,4 @@
-package mackerel
+package main
 
 import (
 	"os"
@@ -9,10 +9,12 @@ type Environ struct {
 	Period              []string
 	Region              []string
 	BucketName          string
-	MackerelAPIKey      string
-	MackerelServiceName string
 	IgnoreRecordType    []string
 	SuppressWarning     bool
+	Credential          string
+	DataSetName         string
+	MackerelAPIKey      string
+	MackerelServiceName string
 }
 
 func DefaultEnv() *Environ {
@@ -33,6 +35,8 @@ func DefaultEnv() *Environ {
 		},
 		BucketName:      "hermes-lambda",
 		SuppressWarning: true,
+		Credential:      "./credential.json",
+		DataSetName:     "hermes_lambda",
 	}
 }
 
@@ -72,6 +76,16 @@ func NewEnv() *Environ {
 	ignoreRecordType := os.Getenv("IGNORE_RECORD_TYPE")
 	if len(ignoreRecordType) > 0 {
 		e.IgnoreRecordType = strings.Split(ignoreRecordType, ",")
+	}
+
+	credential := os.Getenv("CREDENTIAL")
+	if len(credential) > 0 {
+		e.Credential = credential
+	}
+
+	datasetName := os.Getenv("DATASET_NAME")
+	if len(datasetName) > 0 {
+		e.DataSetName = datasetName
 	}
 
 	return e

@@ -10,11 +10,37 @@ import (
 	"github.com/itsubaki/hermes/pkg/cost"
 )
 
-type UnblendedCost struct {
+type AccountCost struct {
 	Storage *Storage
 }
 
-func (c *UnblendedCost) Fetch(period, bucketName string) error {
+func (c *AccountCost) Read(period, bucketName string) ([]cost.AccountCost, error) {
+	out := make([]cost.AccountCost, 0)
+
+	date, err := calendar.Last(period)
+	if err != nil {
+		return out, fmt.Errorf("get last period=%s: %v", period, err)
+	}
+
+	for i := range date {
+		key := fmt.Sprintf("cost/%s.json", date[i].String())
+		read, err := c.Storage.Read(bucketName, key)
+		if err != nil {
+			return out, fmt.Errorf("read storage: %v", err)
+		}
+
+		var u []cost.AccountCost
+		if err := json.Unmarshal(read, &u); err != nil {
+			return out, fmt.Errorf("unmarshal: %v", err)
+		}
+
+		out = append(out, u...)
+	}
+
+	return out, nil
+}
+
+func (c *AccountCost) Fetch(period, bucketName string) error {
 	date, err := calendar.Last(period)
 	if err != nil {
 		return fmt.Errorf("get last period=%s: %v", period, err)
@@ -54,7 +80,7 @@ func (c *UnblendedCost) Fetch(period, bucketName string) error {
 	return nil
 }
 
-func (c *UnblendedCost) Aggregate(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
+func (c *AccountCost) Aggregate(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
 	date, err := calendar.Last(period)
