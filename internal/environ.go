@@ -1,24 +1,24 @@
-package main
+package internal
 
 import (
 	"os"
 	"strings"
 )
 
-type Environ struct {
+type Env struct {
 	Period              []string
 	Region              []string
 	BucketName          string
 	IgnoreRecordType    []string
 	SuppressWarning     bool
-	Credential          string
-	DataSetName         string
 	MackerelAPIKey      string
 	MackerelServiceName string
+	Credential          string
+	DataSetName         string
 }
 
-func DefaultEnv() *Environ {
-	return &Environ{
+func Default() *Env {
+	return &Env{
 		Period: []string{
 			"1m",
 			"1d",
@@ -40,8 +40,8 @@ func DefaultEnv() *Environ {
 	}
 }
 
-func NewEnv() *Environ {
-	e := DefaultEnv()
+func Environ() *Env {
+	e := Default()
 
 	period := os.Getenv("PERIOD")
 	if len(period) > 0 {
