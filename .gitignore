@@ -20,3 +20,6 @@
 # bin
 hermes-lambda.zip
 hermes-lambda
+
+# credential
+credential.json

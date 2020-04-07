@@ -1,4 +1,4 @@
-package mackerel
+package storage
 
 import (
 	"encoding/json"

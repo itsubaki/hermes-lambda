@@ -1,4 +1,4 @@
-package mackerel
+package storage
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ func (c *UnblendedCost) Fetch(period, bucketName string) error {
 		if err != nil {
 			return fmt.Errorf("fetch cost (%s, %s): %v\n", date[i].Start, date[i].End, err)
 		}
-		log.Printf("fetched s3://%s/%s\n", bucketName, key)
+		log.Printf("fetched %s %s", date[i].Start, date[i].End)
 
 		b, err := json.Marshal(ac)
 		if err != nil {

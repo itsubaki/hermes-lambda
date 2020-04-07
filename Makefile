@@ -5,6 +5,7 @@ GOVERSION := $(shell go version)
 LDFLAGS := -X 'main.date=${DATE}' -X 'main.hash=${HASH}' -X 'main.goversion=${GOVERSION}'
 
 build:
+	GO111MODULE=on go mod tidy
 	GOOS=linux GOARCH=amd64 go build -o hermes-lambda
 	zip hermes-lambda.zip hermes-lambda
 

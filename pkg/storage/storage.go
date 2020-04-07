@@ -1,4 +1,4 @@
-package mackerel
+package storage
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ type Storage struct {
 	client *s3.S3
 }
 
-func NewStorage() (*Storage, error) {
+func New() (*Storage, error) {
 	s := session.Must(session.NewSession())
 	c := s3.New(s)
 
