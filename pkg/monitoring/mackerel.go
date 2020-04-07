@@ -1,4 +1,4 @@
-package mkr
+package monitoring
 
 import (
 	"fmt"

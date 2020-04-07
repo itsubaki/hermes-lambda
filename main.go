@@ -12,7 +12,7 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/itsubaki/hermes-lambda/pkg/mkr"
+	"github.com/itsubaki/hermes-lambda/pkg/monitoring"
 	"github.com/itsubaki/hermes-lambda/pkg/storage"
 	"github.com/mackerelio/mackerel-client-go"
 )
@@ -211,7 +211,7 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("get metric values: %v", err)
 	}
 
-	if err := mkr.PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
+	if err := monitoring.PostServiceMetricValues(e.MackerelAPIKey, e.MackerelServiceName, values); err != nil {
 		return fmt.Errorf("post service metric values: %v", err)
 	}
 
