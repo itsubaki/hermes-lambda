@@ -15,6 +15,57 @@ type CoveringCost struct {
 	SuppressWarning bool
 }
 
+func (c *CoveringCost) Read(period, bucketName string, region []string) ([]reservation.Utilization, error) {
+	out := make([]reservation.Utilization, 0)
+
+	price := make([]pricing.Price, 0)
+	for _, r := range region {
+		key := fmt.Sprintf("pricing/%s.json", r)
+		b, err := c.Storage.Read(bucketName, key)
+		if err != nil {
+			return out, fmt.Errorf("s3 read: %v", err)
+		}
+		log.Printf("read s3://%s/%s\n", bucketName, key)
+
+		var p []pricing.Price
+		if err := json.Unmarshal(b, &p); err != nil {
+			return out, fmt.Errorf("unmarshal: %v", err)
+		}
+
+		price = append(price, p...)
+	}
+
+	date, err := calendar.Last(period)
+	if err != nil {
+		return out, fmt.Errorf("get last period=%s: %v", period, err)
+	}
+
+	for i := range date {
+		key := fmt.Sprintf("reservation/%s.json", date[i].String())
+		read, err := c.Storage.Read(bucketName, key)
+		if err != nil {
+			return out, fmt.Errorf("read storage: %v", err)
+		}
+
+		var u []reservation.Utilization
+		if err := json.Unmarshal(read, &u); err != nil {
+			return out, fmt.Errorf("unmarshal: %v", err)
+		}
+
+		for _, e := range reservation.AddCoveringCost(price, u) {
+			if c.SuppressWarning {
+				continue
+			}
+
+			fmt.Printf("[WARN] %s\n", e)
+		}
+
+		out = append(out, u...)
+	}
+
+	return out, nil
+}
+
 func (c *CoveringCost) Fetch(period, bucketName string) error {
 	date, err := calendar.Last(period)
 	if err != nil {
