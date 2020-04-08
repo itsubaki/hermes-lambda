@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/bigquery"
+
 	"github.com/itsubaki/hermes-lambda/internal"
 )
 
@@ -22,7 +24,10 @@ func TestDataSet(t *testing.T) {
 	}
 	defer ds.Close()
 
-	if err := ds.CreateIfNotExists([]string{"1d"}); err != nil {
+	if err := ds.CreateIfNotExists(bigquery.TableMetadata{
+		Name:   "1d_account_cost",
+		Schema: AccountCostSchema,
+	}); err != nil {
 		t.Errorf("create table: %v", err)
 	}
 
