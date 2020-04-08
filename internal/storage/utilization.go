@@ -1,4 +1,4 @@
-package internal
+package storage
 
 import (
 	"encoding/json"
@@ -89,7 +89,7 @@ func (u *Utilization) Read(period, bucketName string, region []string) ([]reserv
 
 		var p []pricing.Price
 		if err := json.Unmarshal(b, &p); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
+			return out, fmt.Errorf("unmarshal pricing: %v", err)
 		}
 
 		price = append(price, p...)
@@ -108,8 +108,8 @@ func (u *Utilization) Read(period, bucketName string, region []string) ([]reserv
 		}
 
 		var list []reservation.Utilization
-		if err := json.Unmarshal(read, &u); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
+		if err := json.Unmarshal(read, &list); err != nil {
+			return out, fmt.Errorf("unmarshal reservation.Utilization: %v", err)
 		}
 
 		for _, e := range reservation.AddCoveringCost(price, list) {

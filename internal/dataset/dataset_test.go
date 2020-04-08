@@ -1,4 +1,4 @@
-package internal
+package dataset
 
 import (
 	"log"
@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/itsubaki/hermes-lambda/internal"
 )
 
 func TestDataSet(t *testing.T) {
@@ -14,7 +16,7 @@ func TestDataSet(t *testing.T) {
 	os.Setenv("BUCKET_NAME", "hermes-lambda-j96qd0m3kh1")
 	os.Setenv("PERIOD", "1d")
 
-	ds, err := NewDataSet("hermes_lambda", "../credential.json")
+	ds, err := New("hermes_lambda", "../credential.json")
 	if err != nil {
 		t.Errorf("new dataset: %v", err)
 	}
@@ -24,10 +26,10 @@ func TestDataSet(t *testing.T) {
 		t.Errorf("create table: %v", err)
 	}
 
-	e := Environ()
+	e := internal.Environ()
 	log.Printf("env=%#v", e)
 
-	l, err := New(e)
+	l, err := internal.New(e)
 	if err != nil {
 		t.Errorf("new hermes-lambda: %v", err)
 	}

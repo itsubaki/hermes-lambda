@@ -2,24 +2,27 @@ package internal
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/itsubaki/hermes-lambda/internal/dataset"
+
+	"github.com/itsubaki/hermes-lambda/internal/storage"
 
 	"github.com/mackerelio/mackerel-client-go"
 )
 
 type HermesLambda struct {
-	Pricing          *Pricing
-	AccountCost      *AccountCost
-	Utilization      *Utilization
-	BucketName       string
-	Period           []string
-	IgnoreRecordType []string
-	Region           []string
+	Pricing     *storage.Pricing
+	AccountCost *storage.AccountCost
+	Utilization *storage.Utilization
+	Dataset     *dataset.DataSet
+	Env         *Env
 }
 
 func New(e *Env) (*HermesLambda, error) {
-	s3, err := NewStorage()
+	s3, err := storage.New()
 	if err != nil {
 		return nil, fmt.Errorf("new storage: %v", err)
 	}
@@ -28,27 +31,122 @@ func New(e *Env) (*HermesLambda, error) {
 		return nil, fmt.Errorf("create bucket=%s if not exists: %v", e.BucketName, err)
 	}
 
+	ds, err := dataset.New(e.DataSetName, e.Credential)
+	if err != nil {
+		return nil, fmt.Errorf("new dataset: %v", err)
+	}
+
+	if err := ds.CreateIfNotExists(e.Period); err != nil {
+		return nil, fmt.Errorf("create table: %v", err)
+	}
+
 	return &HermesLambda{
-		Pricing:          &Pricing{Storage: s3},
-		AccountCost:      &AccountCost{Storage: s3},
-		Utilization:      &Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
-		BucketName:       e.BucketName,
-		Period:           e.Period,
-		IgnoreRecordType: e.IgnoreRecordType,
-		Region:           e.Region,
+		Pricing:     &storage.Pricing{Storage: s3},
+		AccountCost: &storage.AccountCost{Storage: s3},
+		Utilization: &storage.Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
+		Dataset:     ds,
+		Env:         e,
 	}, nil
 }
 
+func (h *HermesLambda) Close() error {
+	return h.Dataset.Close()
+}
+
+func (h *HermesLambda) Put(table string, items interface{}) error {
+	return h.Dataset.Put(table, items)
+}
+
+func (h *HermesLambda) AccountCostItems(p string) (string, []*dataset.AccountCostRow, error) {
+	table := fmt.Sprintf("%s_account_cost", p)
+	items := make([]*dataset.AccountCostRow, 0)
+
+	c, err := h.AccountCost.Read(p, h.Env.BucketName)
+	if err != nil {
+		return table, items, fmt.Errorf("read: %v", err)
+	}
+
+	for _, cc := range c {
+		u, err := strconv.ParseFloat(cc.UnblendedCost.Amount, 64)
+		if err != nil {
+			return table, items, fmt.Errorf("parse float: %v", err)
+		}
+		b, err := strconv.ParseFloat(cc.BlendedCost.Amount, 64)
+		if err != nil {
+			return table, items, fmt.Errorf("parse float: %v", err)
+		}
+		a, err := strconv.ParseFloat(cc.AmortizedCost.Amount, 64)
+		if err != nil {
+			return table, items, fmt.Errorf("parse float: %v", err)
+		}
+		na, err := strconv.ParseFloat(cc.NetAmortizedCost.Amount, 64)
+		if err != nil {
+			return table, items, fmt.Errorf("parse float: %v", err)
+		}
+		nu, err := strconv.ParseFloat(cc.NetUnblendedCost.Amount, 64)
+		if err != nil {
+			return table, items, fmt.Errorf("parse float: %v", err)
+		}
+
+		items = append(items, &dataset.AccountCostRow{
+			Timestamp:        time.Now(),
+			AccountID:        cc.AccountID,
+			Description:      cc.Description,
+			Date:             cc.Date,
+			Service:          cc.Service,
+			RecordType:       cc.RecordType,
+			UnblendedCost:    u,
+			BlendedCost:      b,
+			AmortizedCost:    a,
+			NetAmortizedCost: na,
+			NetUnblendedCost: nu,
+		})
+	}
+
+	return table, items, nil
+}
+
+func (h *HermesLambda) UtilizationItems(p string) (string, []*dataset.UtilizationRow, error) {
+	table := fmt.Sprintf("%s_utilization", p)
+	items := make([]*dataset.UtilizationRow, 0)
+
+	u, err := h.Utilization.Read(p, h.Env.BucketName, h.Env.Region)
+	if err != nil {
+		return table, items, fmt.Errorf("read: %v", err)
+	}
+
+	for _, uu := range u {
+		items = append(items, &dataset.UtilizationRow{
+			Timestamp:        time.Now(),
+			AccountID:        uu.AccountID,
+			Description:      uu.Description,
+			Region:           uu.Region,
+			InstanceType:     uu.InstanceType,
+			Platform:         uu.Platform,
+			CacheEngine:      uu.CacheEngine,
+			DatabaseEngine:   uu.DatabaseEngine,
+			DeploymentOption: uu.DeploymentOption,
+			Date:             uu.Date,
+			Hours:            uu.Hours,
+			Num:              uu.Num,
+			Percentage:       uu.Percentage,
+			CoveringCost:     uu.CoveringCost,
+		})
+	}
+
+	return table, items, nil
+}
+
 func (h *HermesLambda) Fetch() error {
-	if err := h.Pricing.Fetch(h.BucketName, h.Region); err != nil {
+	if err := h.Pricing.Fetch(h.Env.BucketName, h.Env.Region); err != nil {
 		return fmt.Errorf("fetch pricing: %v", err)
 	}
 
-	if err := h.AccountCost.Fetch(h.Period, h.BucketName); err != nil {
+	if err := h.AccountCost.Fetch(h.Env.Period, h.Env.BucketName); err != nil {
 		return fmt.Errorf("fetch account cost: %v", err)
 	}
 
-	if err := h.Utilization.Fetch(h.Period, h.BucketName); err != nil {
+	if err := h.Utilization.Fetch(h.Env.Period, h.Env.BucketName); err != nil {
 		return fmt.Errorf("fetch utilization: %v", err)
 	}
 
@@ -58,7 +156,7 @@ func (h *HermesLambda) Fetch() error {
 func (h *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 
-	for _, p := range h.Period {
+	for _, p := range h.Env.Period {
 		v, err := h.metricValues(p)
 		if err != nil {
 			return values, err
@@ -73,12 +171,12 @@ func (h *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
 func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 
-	u, err := h.AccountCost.UnblendedCost(period, h.BucketName, h.IgnoreRecordType, h.Region)
+	u, err := h.AccountCost.UnblendedCost(period, h.Env.BucketName, h.Env.IgnoreRecordType, h.Env.Region)
 	if err != nil {
 		return values, fmt.Errorf("unblended cost: %v", err)
 	}
 
-	c, err := h.Utilization.CoveringCost(period, h.BucketName, h.Region)
+	c, err := h.Utilization.CoveringCost(period, h.Env.BucketName, h.Env.Region)
 	if err != nil {
 		return values, fmt.Errorf("covering cost: %v", err)
 	}
@@ -121,9 +219,9 @@ func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, err
 	return values, nil
 }
 
-func PostServiceMetricValues(apiKey, service string, values []*mackerel.MetricValue) error {
-	client := mackerel.NewClient(apiKey)
-	if err := client.PostServiceMetricValues(service, values); err != nil {
+func (h *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) error {
+	client := mackerel.NewClient(h.Env.MackerelAPIKey)
+	if err := client.PostServiceMetricValues(h.Env.MackerelServiceName, values); err != nil {
 		return fmt.Errorf("post service metirc values: %v\n", err)
 	}
 
