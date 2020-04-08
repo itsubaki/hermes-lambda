@@ -28,7 +28,7 @@ func (u *Utilization) CoveringCost(period, bucketName string, region []string) (
 		key := fmt.Sprintf("pricing/%s.json", r)
 		b, err := u.Storage.Read(bucketName, key)
 		if err != nil {
-			return out, fmt.Errorf("s3 read: %v", err)
+			return out, fmt.Errorf("read=%s: %v", key, err)
 		}
 		log.Printf("read s3://%s/%s\n", bucketName, key)
 
@@ -44,7 +44,7 @@ func (u *Utilization) CoveringCost(period, bucketName string, region []string) (
 		key := fmt.Sprintf("reservation/%s.json", d.String())
 		b, err := u.Storage.Read(bucketName, key)
 		if err != nil {
-			return out, fmt.Errorf("s3 read: %v", err)
+			return out, fmt.Errorf("read=%s: %v", key, err)
 		}
 		log.Printf("read s3://%s/%s\n", bucketName, key)
 

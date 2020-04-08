@@ -31,7 +31,7 @@ func New(e *Env) (*HermesLambda, error) {
 	return &HermesLambda{
 		Pricing:          &Pricing{Storage: s3},
 		AccountCost:      &AccountCost{Storage: s3},
-		Utilization:      &Utilization{Storage: s3},
+		Utilization:      &Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
 		BucketName:       e.BucketName,
 		Period:           e.Period,
 		IgnoreRecordType: e.IgnoreRecordType,
@@ -39,23 +39,27 @@ func New(e *Env) (*HermesLambda, error) {
 	}, nil
 }
 
-func (h *HermesLambda) Fetch() ([]*mackerel.MetricValue, error) {
-	values := make([]*mackerel.MetricValue, 0)
-
+func (h *HermesLambda) Fetch() error {
 	if err := h.Pricing.Fetch(h.BucketName, h.Region); err != nil {
-		return values, fmt.Errorf("fetch pricing: %v", err)
+		return fmt.Errorf("fetch pricing: %v", err)
 	}
 
 	if err := h.AccountCost.Fetch(h.Period, h.BucketName); err != nil {
-		return values, fmt.Errorf("fetch account cost: %v", err)
+		return fmt.Errorf("fetch account cost: %v", err)
 	}
 
 	if err := h.Utilization.Fetch(h.Period, h.BucketName); err != nil {
-		return values, fmt.Errorf("fetch utilization: %v", err)
+		return fmt.Errorf("fetch utilization: %v", err)
 	}
 
+	return nil
+}
+
+func (h *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
+	values := make([]*mackerel.MetricValue, 0)
+
 	for _, p := range h.Period {
-		v, err := h.MetricValues(p)
+		v, err := h.metricValues(p)
 		if err != nil {
 			return values, err
 		}
@@ -66,7 +70,7 @@ func (h *HermesLambda) Fetch() ([]*mackerel.MetricValue, error) {
 	return values, nil
 }
 
-func (h *HermesLambda) MetricValues(period string) ([]*mackerel.MetricValue, error) {
+func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 
 	u, err := h.AccountCost.UnblendedCost(period, h.BucketName, h.IgnoreRecordType, h.Region)
