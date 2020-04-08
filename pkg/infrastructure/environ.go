@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type Environ struct {
+type Env struct {
 	Dir             string
 	Period          []string
 	Region          []string
@@ -15,8 +15,8 @@ type Environ struct {
 	SuppressWarning bool
 }
 
-func DefaultEnv() *Environ {
-	return &Environ{
+func Default() *Env {
+	return &Env{
 		Dir: "/tmp",
 		Period: []string{
 			"1m",
@@ -35,8 +35,8 @@ func DefaultEnv() *Environ {
 	}
 }
 
-func Env() *Environ {
-	e := DefaultEnv()
+func Environ() *Env {
+	e := Default()
 
 	dir := os.Getenv("DIR")
 	if len(dir) > 0 {

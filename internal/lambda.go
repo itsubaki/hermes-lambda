@@ -8,7 +8,8 @@ import (
 	"github.com/mackerelio/mackerel-client-go"
 )
 
-type Metric struct {
+type HermesLambda struct {
+	Pricing          *Pricing
 	AccountCost      *AccountCost
 	Utilization      *Utilization
 	BucketName       string
@@ -17,10 +18,44 @@ type Metric struct {
 	Region           []string
 }
 
-func (m *Metric) MetricValues() ([]*mackerel.MetricValue, error) {
+func New(e *Env) (*HermesLambda, error) {
+	s3, err := NewStorage()
+	if err != nil {
+		return nil, fmt.Errorf("new storage: %v", err)
+	}
+
+	if err := s3.CreateIfNotExists(e.BucketName); err != nil {
+		return nil, fmt.Errorf("create bucket=%s if not exists: %v", e.BucketName, err)
+	}
+
+	return &HermesLambda{
+		Pricing:          &Pricing{Storage: s3},
+		AccountCost:      &AccountCost{Storage: s3},
+		Utilization:      &Utilization{Storage: s3},
+		BucketName:       e.BucketName,
+		Period:           e.Period,
+		IgnoreRecordType: e.IgnoreRecordType,
+		Region:           e.Region,
+	}, nil
+}
+
+func (h *HermesLambda) Fetch() ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
-	for _, p := range m.Period {
-		v, err := m.metricValues(p)
+
+	if err := h.Pricing.Fetch(h.BucketName, h.Region); err != nil {
+		return values, fmt.Errorf("fetch pricing: %v", err)
+	}
+
+	if err := h.AccountCost.Fetch(h.Period, h.BucketName); err != nil {
+		return values, fmt.Errorf("fetch account cost: %v", err)
+	}
+
+	if err := h.Utilization.Fetch(h.Period, h.BucketName); err != nil {
+		return values, fmt.Errorf("fetch utilization: %v", err)
+	}
+
+	for _, p := range h.Period {
+		v, err := h.MetricValues(p)
 		if err != nil {
 			return values, err
 		}
@@ -31,15 +66,15 @@ func (m *Metric) MetricValues() ([]*mackerel.MetricValue, error) {
 	return values, nil
 }
 
-func (m *Metric) metricValues(period string) ([]*mackerel.MetricValue, error) {
+func (h *HermesLambda) MetricValues(period string) ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 
-	u, err := m.AccountCost.UnblendedCost(period, m.BucketName, m.IgnoreRecordType, m.Region)
+	u, err := h.AccountCost.UnblendedCost(period, h.BucketName, h.IgnoreRecordType, h.Region)
 	if err != nil {
 		return values, fmt.Errorf("unblended cost: %v", err)
 	}
 
-	c, err := m.Utilization.CoveringCost(period, m.BucketName, m.Region)
+	c, err := h.Utilization.CoveringCost(period, h.BucketName, h.Region)
 	if err != nil {
 		return values, fmt.Errorf("covering cost: %v", err)
 	}

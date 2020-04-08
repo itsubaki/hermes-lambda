@@ -15,7 +15,7 @@ import (
 )
 
 func Handle(ctx context.Context) error {
-	e := NewEnv()
+	e := Environ()
 	log.Printf("env=%#v", e)
 
 	date, err := calendar.Last(e.Period[0])
