@@ -23,7 +23,7 @@ type UtilizationRow struct {
 	CoveringCost     float64   `bigquery:"covering_cost"`
 }
 
-var utilization = bigquery.Schema{
+var UtilizationSchema = bigquery.Schema{
 	{Name: "timestamp", Type: bigquery.TimestampFieldType},
 	{Name: "account_id", Type: bigquery.StringFieldType},
 	{Name: "description", Type: bigquery.StringFieldType},

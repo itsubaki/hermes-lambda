@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"cloud.google.com/go/bigquery"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/itsubaki/hermes-lambda/internal"
 )
@@ -41,9 +43,15 @@ func handle(ctx context.Context) error {
 	}
 
 	for _, p := range e.Period {
-		table, items, err := h.AccountCostItems(p)
+		table, schema, items, err := h.AccountCostItems(p)
 		if err != nil {
 			return fmt.Errorf("account cost items: %v", err)
+		}
+		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
+			Name:   table,
+			Schema: schema,
+		}); err != nil {
+			return fmt.Errorf("create table=%s: %v", err)
 		}
 		if err := h.Put(table, items); err != nil {
 			return fmt.Errorf("put=%s: %v", table, err)
@@ -51,9 +59,15 @@ func handle(ctx context.Context) error {
 	}
 
 	for _, p := range e.Period {
-		table, items, err := h.UtilizationItems(p)
+		table, schema, items, err := h.UtilizationItems(p)
 		if err != nil {
 			return fmt.Errorf("utilization items: %v", err)
+		}
+		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
+			Name:   table,
+			Schema: schema,
+		}); err != nil {
+			return fmt.Errorf("create table=%s: %v", err)
 		}
 		if err := h.Put(table, items); err != nil {
 			return fmt.Errorf("put=%s: %v", table, err)

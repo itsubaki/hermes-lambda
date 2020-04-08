@@ -20,7 +20,7 @@ type AccountCostRow struct {
 	NetUnblendedCost float64   `bigquery:"net_unblended_cost"` // before discount
 }
 
-var accountCost = bigquery.Schema{
+var AccountCostSchema = bigquery.Schema{
 	{Name: "timestamp", Type: bigquery.TimestampFieldType},
 	{Name: "account_id", Type: bigquery.StringFieldType},
 	{Name: "description", Type: bigquery.StringFieldType},

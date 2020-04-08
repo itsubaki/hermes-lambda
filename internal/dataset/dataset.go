@@ -44,39 +44,21 @@ func (d *DataSet) Put(table string, items interface{}) error {
 	return d.Client.Dataset(d.Name).Table(table).Inserter().Put(d.Context, items)
 }
 
-func (d *DataSet) CreateIfNotExists(period []string) error {
-	for _, m := range TableMetadata(period) {
-		ref := d.Client.Dataset(d.Name).Table(m.Name)
+func (d *DataSet) CreateIfNotExists(m bigquery.TableMetadata) error {
+	ref := d.Client.Dataset(d.Name).Table(m.Name)
 
-		found := true
-		if _, err := ref.Metadata(d.Context); err != nil {
-			found = false
-		}
+	found := true
+	if _, err := ref.Metadata(d.Context); err != nil {
+		found = false
+	}
 
-		if found {
-			continue
-		}
+	if found {
+		return nil
+	}
 
-		if err := ref.Create(d.Context, &m); err != nil {
-			return fmt.Errorf("create table=%s: %v", m.Name, err)
-		}
+	if err := ref.Create(d.Context, &m); err != nil {
+		return fmt.Errorf("create table=%s: %v", m.Name, err)
 	}
 
 	return nil
-}
-
-func TableMetadata(period []string) []bigquery.TableMetadata {
-	md := make([]bigquery.TableMetadata, 0)
-	for _, p := range period {
-		md = append(md, bigquery.TableMetadata{
-			Name:   fmt.Sprintf("%s_account_cost", p),
-			Schema: accountCost,
-		})
-		md = append(md, bigquery.TableMetadata{
-			Name:   fmt.Sprintf("%s_utilization", p),
-			Schema: utilization,
-		})
-	}
-
-	return md
 }
