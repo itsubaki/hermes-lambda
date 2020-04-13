@@ -39,10 +39,12 @@ func handle(ctx context.Context) error {
 	}
 
 	for _, i := range items {
-		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
-			Name:   i.TableName,
-			Schema: i.TableSchema,
-		}); err != nil {
+		if err := h.DataSet.CreateIfNotExists(
+			bigquery.TableMetadata{
+				Name:   i.TableName,
+				Schema: i.TableSchema,
+			},
+		); err != nil {
 			return fmt.Errorf("create table=%s: %v", i.TableName, err)
 		}
 
