@@ -16,6 +16,7 @@ import (
 )
 
 type HermesLambda struct {
+	Time        time.Time
 	Pricing     *storage.Pricing
 	AccountCost *storage.AccountCost
 	Utilization *storage.Utilization
@@ -39,6 +40,7 @@ func New(e *Env) (*HermesLambda, error) {
 	}
 
 	return &HermesLambda{
+		Time:        time.Now(),
 		Pricing:     &storage.Pricing{Storage: s3},
 		AccountCost: &storage.AccountCost{Storage: s3},
 		Utilization: &storage.Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
@@ -53,6 +55,48 @@ func (h *HermesLambda) Close() error {
 
 func (h *HermesLambda) Put(table string, items interface{}) error {
 	return h.DataSet.Put(table, items)
+}
+
+func (h *HermesLambda) Items() ([]dataset.Items, error) {
+	out := make([]dataset.Items, 0)
+
+	for _, p := range h.Env.Period {
+		table, schema, items, err := h.AccountCostItems(p)
+		if err != nil {
+			return out, fmt.Errorf("account cost items: %v", err)
+		}
+		out = append(out, dataset.Items{
+			TableName:   table,
+			TableSchema: schema,
+			Items:       items,
+		})
+	}
+
+	for _, p := range h.Env.Period {
+		table, schema, items, err := h.AccountCostItems(p)
+		if err != nil {
+			return out, fmt.Errorf("account cost items: %v", err)
+		}
+		out = append(out, dataset.Items{
+			TableName:   table,
+			TableSchema: schema,
+			Items:       items,
+		})
+	}
+
+	for _, p := range h.Env.Period {
+		table, schema, items, err := h.UtilizationItems(p)
+		if err != nil {
+			return out, fmt.Errorf("utilization items: %v", err)
+		}
+		out = append(out, dataset.Items{
+			TableName:   table,
+			TableSchema: schema,
+			Items:       items,
+		})
+	}
+
+	return out, nil
 }
 
 func (h *HermesLambda) AccountCostItems(p string) (string, bigquery.Schema, []*dataset.AccountCostRow, error) {
@@ -87,7 +131,7 @@ func (h *HermesLambda) AccountCostItems(p string) (string, bigquery.Schema, []*d
 		}
 
 		items = append(items, &dataset.AccountCostRow{
-			Timestamp:        time.Now(),
+			Timestamp:        h.Time,
 			AccountID:        cc.AccountID,
 			Description:      cc.Description,
 			Date:             cc.Date,
@@ -115,7 +159,7 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 
 	for _, uu := range u {
 		items = append(items, &dataset.UtilizationRow{
-			Timestamp:        time.Now(),
+			Timestamp:        h.Time,
 			AccountID:        uu.AccountID,
 			Description:      uu.Description,
 			Region:           uu.Region,
@@ -192,7 +236,7 @@ func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, err
 	for k, v := range u {
 		values = append(values, &mackerel.MetricValue{
 			Name:  fmt.Sprintf("aws.%s.unblended_cost.%s", period, strings.Replace(k, " ", "", -1)),
-			Time:  time.Now().Unix(),
+			Time:  h.Time.Unix(),
 			Value: v,
 		})
 	}
@@ -200,7 +244,7 @@ func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, err
 	for k, v := range c {
 		values = append(values, &mackerel.MetricValue{
 			Name:  fmt.Sprintf("aws.%s.ri_covering_cost.%s", period, strings.Replace(k, " ", "", -1)),
-			Time:  time.Now().Unix(),
+			Time:  h.Time.Unix(),
 			Value: v,
 		})
 	}
@@ -208,7 +252,7 @@ func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, err
 	for k, v := range total {
 		values = append(values, &mackerel.MetricValue{
 			Name:  fmt.Sprintf("aws.%s.rebate_cost.%s", period, strings.Replace(k, " ", "", -1)),
-			Time:  time.Now().Unix(),
+			Time:  h.Time.Unix(),
 			Value: v,
 		})
 

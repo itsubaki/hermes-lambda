@@ -33,6 +33,28 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("fetch: %v", err)
 	}
 
+	items, err := h.Items()
+	if err != nil {
+		return fmt.Errorf("items: %v", err)
+	}
+
+	for _, i := range items {
+		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
+			Name:   i.TableName,
+			Schema: i.TableSchema,
+		}); err != nil {
+			return fmt.Errorf("create table=%s: %v", i.TableName, err)
+		}
+
+		if err := h.Put(i.TableName, i.Items); err != nil {
+			return fmt.Errorf("put=%s: %v", i.TableName, err)
+		}
+	}
+
+	if len(e.MackerelServiceName) < 1 {
+		return nil
+	}
+
 	values, err := h.MetricValues()
 	if err != nil {
 		return fmt.Errorf("metric values: %v", err)
@@ -40,38 +62,6 @@ func handle(ctx context.Context) error {
 
 	if err := h.PostServiceMetricValues(values); err != nil {
 		return fmt.Errorf("post service metric values: %v", err)
-	}
-
-	for _, p := range e.Period {
-		table, schema, items, err := h.AccountCostItems(p)
-		if err != nil {
-			return fmt.Errorf("account cost items: %v", err)
-		}
-		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
-			Name:   table,
-			Schema: schema,
-		}); err != nil {
-			return fmt.Errorf("create table=%s: %v", err)
-		}
-		if err := h.Put(table, items); err != nil {
-			return fmt.Errorf("put=%s: %v", table, err)
-		}
-	}
-
-	for _, p := range e.Period {
-		table, schema, items, err := h.UtilizationItems(p)
-		if err != nil {
-			return fmt.Errorf("utilization items: %v", err)
-		}
-		if err := h.DataSet.CreateIfNotExists(bigquery.TableMetadata{
-			Name:   table,
-			Schema: schema,
-		}); err != nil {
-			return fmt.Errorf("create table=%s: %v", err)
-		}
-		if err := h.Put(table, items); err != nil {
-			return fmt.Errorf("put=%s: %v", table, err)
-		}
 	}
 
 	return nil
