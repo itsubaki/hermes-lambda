@@ -73,18 +73,6 @@ func (h *HermesLambda) Items() ([]dataset.Items, error) {
 	}
 
 	for _, p := range h.Env.Period {
-		table, schema, items, err := h.AccountCostItems(p)
-		if err != nil {
-			return out, fmt.Errorf("account cost items: %v", err)
-		}
-		out = append(out, dataset.Items{
-			TableName:   table,
-			TableSchema: schema,
-			Items:       items,
-		})
-	}
-
-	for _, p := range h.Env.Period {
 		table, schema, items, err := h.UtilizationItems(p)
 		if err != nil {
 			return out, fmt.Errorf("utilization items: %v", err)
