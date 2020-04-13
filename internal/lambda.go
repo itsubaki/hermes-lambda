@@ -53,7 +53,26 @@ func (h *HermesLambda) Close() error {
 	return h.DataSet.Close()
 }
 
-func (h *HermesLambda) Put(table string, items interface{}) error {
+func (h *HermesLambda) Put(items []dataset.Items) error {
+	for _, i := range items {
+		if err := h.DataSet.CreateIfNotExists(
+			bigquery.TableMetadata{
+				Name:   i.TableName,
+				Schema: i.TableSchema,
+			},
+		); err != nil {
+			return fmt.Errorf("create table=%s: %v", i.TableName, err)
+		}
+
+		if err := h.put(i.TableName, i.Items); err != nil {
+			return fmt.Errorf("put=%s: %v", i.TableName, err)
+		}
+	}
+
+	return nil
+}
+
+func (h *HermesLambda) put(table string, items interface{}) error {
 	return h.DataSet.Put(table, items)
 }
 

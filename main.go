@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"cloud.google.com/go/bigquery"
-
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/itsubaki/hermes-lambda/internal"
 )
@@ -38,19 +36,8 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("items: %v", err)
 	}
 
-	for _, i := range items {
-		if err := h.DataSet.CreateIfNotExists(
-			bigquery.TableMetadata{
-				Name:   i.TableName,
-				Schema: i.TableSchema,
-			},
-		); err != nil {
-			return fmt.Errorf("create table=%s: %v", i.TableName, err)
-		}
-
-		if err := h.Put(i.TableName, i.Items); err != nil {
-			return fmt.Errorf("put=%s: %v", i.TableName, err)
-		}
+	if err := h.Put(items); err != nil {
+		return fmt.Errorf("put items: %v", err)
 	}
 
 	if len(e.MackerelServiceName) < 1 {
