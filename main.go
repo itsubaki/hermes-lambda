@@ -40,7 +40,7 @@ func handle(ctx context.Context) error {
 		return fmt.Errorf("put items: %v", err)
 	}
 
-	if len(e.MackerelServiceName) < 1 {
+	if len(e.MackerelAPIKey) < 1 {
 		return nil
 	}
 
