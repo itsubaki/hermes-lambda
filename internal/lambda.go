@@ -164,9 +164,15 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 		return table, dataset.UtilizationSchema, items, fmt.Errorf("read: %v", err)
 	}
 
-	var total float64
+	total := make(map[string]float64)
 	for _, uu := range u {
-		total = total + uu.CoveringCost
+		v, ok := total[uu.Region]
+		if !ok {
+			total[uu.Region] = uu.CoveringCost
+			continue
+		}
+
+		total[uu.Region] = v + uu.CoveringCost
 	}
 
 	for _, uu := range u {
@@ -185,7 +191,7 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 			Num:                    uu.Num,
 			Percentage:             uu.Percentage,
 			CoveringCost:           uu.CoveringCost,
-			CoveringCostPercentage: uu.CoveringCost / total * 100,
+			CoveringCostPercentage: uu.CoveringCost / total[uu.Region] * 100,
 		})
 	}
 
