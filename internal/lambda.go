@@ -164,22 +164,28 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 		return table, dataset.UtilizationSchema, items, fmt.Errorf("read: %v", err)
 	}
 
+	var total float64
+	for _, uu := range u {
+		total = total + uu.CoveringCost
+	}
+
 	for _, uu := range u {
 		items = append(items, &dataset.UtilizationRow{
-			Timestamp:        h.Time,
-			AccountID:        uu.AccountID,
-			Description:      uu.Description,
-			Region:           uu.Region,
-			InstanceType:     uu.InstanceType,
-			Platform:         uu.Platform,
-			CacheEngine:      uu.CacheEngine,
-			DatabaseEngine:   uu.DatabaseEngine,
-			DeploymentOption: uu.DeploymentOption,
-			Date:             uu.Date,
-			Hours:            uu.Hours,
-			Num:              uu.Num,
-			Percentage:       uu.Percentage,
-			CoveringCost:     uu.CoveringCost,
+			Timestamp:              h.Time,
+			AccountID:              uu.AccountID,
+			Description:            uu.Description,
+			Region:                 uu.Region,
+			InstanceType:           uu.InstanceType,
+			Platform:               uu.Platform,
+			CacheEngine:            uu.CacheEngine,
+			DatabaseEngine:         uu.DatabaseEngine,
+			DeploymentOption:       uu.DeploymentOption,
+			Date:                   uu.Date,
+			Hours:                  uu.Hours,
+			Num:                    uu.Num,
+			Percentage:             uu.Percentage,
+			CoveringCost:           uu.CoveringCost,
+			CoveringCostPercentage: uu.CoveringCost / total * 100,
 		})
 	}
 

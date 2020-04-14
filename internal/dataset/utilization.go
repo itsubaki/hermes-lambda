@@ -7,20 +7,21 @@ import (
 )
 
 type UtilizationRow struct {
-	Timestamp        time.Time `bigquery:"timestamp"`
-	AccountID        string    `bigquery:"account_id"`
-	Description      string    `bigquery:"description"`
-	Region           string    `bigquery:"region"`
-	InstanceType     string    `bigquery:"instance_type"`
-	Platform         string    `bigquery:"platform"`
-	CacheEngine      string    `bigquery:"cache_engine"`
-	DatabaseEngine   string    `bigquery:"database_engine"`
-	DeploymentOption string    `bigquery:"deployment_option"`
-	Date             string    `bigquery:"date"`
-	Hours            float64   `bigquery:"hours"`
-	Num              float64   `bigquery:"num"`
-	Percentage       float64   `bigquery:"percentage"`
-	CoveringCost     float64   `bigquery:"covering_cost"`
+	Timestamp              time.Time `bigquery:"timestamp"`
+	AccountID              string    `bigquery:"account_id"`
+	Description            string    `bigquery:"description"`
+	Region                 string    `bigquery:"region"`
+	InstanceType           string    `bigquery:"instance_type"`
+	Platform               string    `bigquery:"platform"`
+	CacheEngine            string    `bigquery:"cache_engine"`
+	DatabaseEngine         string    `bigquery:"database_engine"`
+	DeploymentOption       string    `bigquery:"deployment_option"`
+	Date                   string    `bigquery:"date"`
+	Hours                  float64   `bigquery:"hours"`
+	Num                    float64   `bigquery:"num"`
+	Percentage             float64   `bigquery:"percentage"`
+	CoveringCost           float64   `bigquery:"covering_cost"`
+	CoveringCostPercentage float64   `bigquery:"covering_cost_percentage"`
 }
 
 var UtilizationSchema = bigquery.Schema{
@@ -38,4 +39,5 @@ var UtilizationSchema = bigquery.Schema{
 	{Name: "num", Type: bigquery.FloatFieldType},
 	{Name: "percentage", Type: bigquery.FloatFieldType},
 	{Name: "covering_cost", Type: bigquery.FloatFieldType},
+	{Name: "covering_cost_percentage", Type: bigquery.FloatFieldType},
 }
