@@ -203,7 +203,7 @@ func (h *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 	out := dataset.Items{
 		TableMetadata: bigquery.TableMetadata{
 			Name:   fmt.Sprintf("%s_utilization", p),
-			Schema: dataset.AccountCostSchema,
+			Schema: dataset.UtilizationSchema,
 			TimePartitioning: &bigquery.TimePartitioning{
 				Field: "date",
 			},
