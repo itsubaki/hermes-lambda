@@ -61,16 +61,12 @@ func (h *HermesLambda) Put(items []dataset.Items) error {
 			return fmt.Errorf("create table=%#v: %v", i.TableMetadata, err)
 		}
 
-		if err := h.put(i.TableMetadata.Name, i.Items); err != nil {
+		if err := h.DataSet.Put(i.TableMetadata.Name, i.Items); err != nil {
 			return fmt.Errorf("put=%#v: %v", i.TableMetadata, err)
 		}
 	}
 
 	return nil
-}
-
-func (h *HermesLambda) put(table string, items interface{}) error {
-	return h.DataSet.Put(table, items)
 }
 
 func (h *HermesLambda) Items() ([]dataset.Items, error) {
@@ -297,8 +293,8 @@ func (h *HermesLambda) metricValues(period string) ([]*mackerel.MetricValue, err
 }
 
 func (h *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) error {
-	client := mackerel.NewClient(h.Env.MackerelAPIKey)
-	if err := client.PostServiceMetricValues(h.Env.MackerelServiceName, values); err != nil {
+	c := mackerel.NewClient(h.Env.MackerelAPIKey)
+	if err := c.PostServiceMetricValues(h.Env.MackerelServiceName, values); err != nil {
 		return fmt.Errorf("post service metirc values: %v\n", err)
 	}
 
