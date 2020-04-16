@@ -55,17 +55,12 @@ func (h *HermesLambda) Close() error {
 
 func (h *HermesLambda) Put(items []dataset.Items) error {
 	for _, i := range items {
-		if err := h.DataSet.CreateIfNotExists(
-			bigquery.TableMetadata{
-				Name:   i.TableName,
-				Schema: i.TableSchema,
-			},
-		); err != nil {
-			return fmt.Errorf("create table=%s: %v", i.TableName, err)
+		if err := h.DataSet.CreateIfNotExists(i.TableMetadata); err != nil {
+			return fmt.Errorf("create table=%#v: %v", i.TableMetadata, err)
 		}
 
-		if err := h.put(i.TableName, i.Items); err != nil {
-			return fmt.Errorf("put=%s: %v", i.TableName, err)
+		if err := h.put(i.TableMetadata.Name, i.Items); err != nil {
+			return fmt.Errorf("put=%#v: %v", i.TableMetadata, err)
 		}
 	}
 
@@ -80,61 +75,51 @@ func (h *HermesLambda) Items() ([]dataset.Items, error) {
 	out := make([]dataset.Items, 0)
 
 	for _, p := range h.Env.Period {
-		table, schema, items, err := h.AccountCostItems(p)
+		items, err := h.AccountCostItems(p)
 		if err != nil {
 			return out, fmt.Errorf("account cost items: %v", err)
 		}
-		out = append(out, dataset.Items{
-			TableName:   table,
-			TableSchema: schema,
-			Items:       items,
-		})
+		out = append(out, items)
 	}
 
 	for _, p := range h.Env.Period {
-		table, schema, items, err := h.UtilizationItems(p)
+		items, err := h.UtilizationItems(p)
 		if err != nil {
 			return out, fmt.Errorf("utilization items: %v", err)
 		}
-		out = append(out, dataset.Items{
-			TableName:   table,
-			TableSchema: schema,
-			Items:       items,
-		})
+		out = append(out, items)
 	}
 
 	return out, nil
 }
 
-func (h *HermesLambda) AccountCostItems(p string) (string, bigquery.Schema, []*dataset.AccountCostRow, error) {
-	table := fmt.Sprintf("%s_account_cost", p)
-	items := make([]*dataset.AccountCostRow, 0)
-
+func (h *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
 	c, err := h.AccountCost.Read(p, h.Env.BucketName)
 	if err != nil {
-		return table, dataset.AccountCostSchema, items, fmt.Errorf("read: %v", err)
+		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
 
+	items := make([]*dataset.AccountCostRow, 0)
 	for _, cc := range c {
 		u, err := strconv.ParseFloat(cc.UnblendedCost.Amount, 64)
 		if err != nil {
-			return table, dataset.AccountCostSchema, items, fmt.Errorf("parse float: %v", err)
+			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
 		b, err := strconv.ParseFloat(cc.BlendedCost.Amount, 64)
 		if err != nil {
-			return table, dataset.AccountCostSchema, items, fmt.Errorf("parse float: %v", err)
+			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
 		a, err := strconv.ParseFloat(cc.AmortizedCost.Amount, 64)
 		if err != nil {
-			return table, dataset.AccountCostSchema, items, fmt.Errorf("parse float: %v", err)
+			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
 		na, err := strconv.ParseFloat(cc.NetAmortizedCost.Amount, 64)
 		if err != nil {
-			return table, dataset.AccountCostSchema, items, fmt.Errorf("parse float: %v", err)
+			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
 		nu, err := strconv.ParseFloat(cc.NetUnblendedCost.Amount, 64)
 		if err != nil {
-			return table, dataset.AccountCostSchema, items, fmt.Errorf("parse float: %v", err)
+			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
 
 		items = append(items, &dataset.AccountCostRow{
@@ -152,16 +137,24 @@ func (h *HermesLambda) AccountCostItems(p string) (string, bigquery.Schema, []*d
 		})
 	}
 
-	return table, dataset.AccountCostSchema, items, nil
+	out := dataset.Items{
+		TableMetadata: bigquery.TableMetadata{
+			Name:   fmt.Sprintf("%s_account_cost", p),
+			Schema: dataset.AccountCostSchema,
+			TimePartitioning: &bigquery.TimePartitioning{
+				Field: "date",
+			},
+		},
+		Items: items,
+	}
+
+	return out, nil
 }
 
-func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*dataset.UtilizationRow, error) {
-	table := fmt.Sprintf("%s_utilization", p)
-	items := make([]*dataset.UtilizationRow, 0)
-
+func (h *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 	u, err := h.Utilization.Read(p, h.Env.BucketName, h.Env.Region)
 	if err != nil {
-		return table, dataset.UtilizationSchema, items, fmt.Errorf("read: %v", err)
+		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
 
 	total := make(map[string]float64)
@@ -175,6 +168,7 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 		total[uu.Region] = v + uu.CoveringCost
 	}
 
+	items := make([]*dataset.UtilizationRow, 0)
 	for _, uu := range u {
 		items = append(items, &dataset.UtilizationRow{
 			Timestamp:              h.Time,
@@ -195,7 +189,18 @@ func (h *HermesLambda) UtilizationItems(p string) (string, bigquery.Schema, []*d
 		})
 	}
 
-	return table, dataset.UtilizationSchema, items, nil
+	out := dataset.Items{
+		TableMetadata: bigquery.TableMetadata{
+			Name:   fmt.Sprintf("%s_utilization", p),
+			Schema: dataset.AccountCostSchema,
+			TimePartitioning: &bigquery.TimePartitioning{
+				Field: "date",
+			},
+		},
+		Items: items,
+	}
+
+	return out, nil
 }
 
 func (h *HermesLambda) Fetch() error {
