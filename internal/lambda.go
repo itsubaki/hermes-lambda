@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/civil"
+
 	"cloud.google.com/go/bigquery"
 
 	"github.com/itsubaki/hermes-lambda/internal/dataset"
@@ -121,12 +123,16 @@ func (h *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
 		if err != nil {
 			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
 		}
+		date, err := civil.ParseDate(cc.Date)
+		if err != nil {
+			return dataset.Items{}, fmt.Errorf("parse date: %v", err)
+		}
 
 		items = append(items, &dataset.AccountCostRow{
 			Timestamp:        h.Time,
 			AccountID:        cc.AccountID,
 			Description:      cc.Description,
-			Date:             cc.Date,
+			Date:             date,
 			Service:          cc.Service,
 			RecordType:       cc.RecordType,
 			UnblendedCost:    u,
@@ -170,6 +176,11 @@ func (h *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 
 	items := make([]*dataset.UtilizationRow, 0)
 	for _, uu := range u {
+		date, err := civil.ParseDate(uu.Date)
+		if err != nil {
+			return dataset.Items{}, fmt.Errorf("parse date: %v", err)
+		}
+
 		items = append(items, &dataset.UtilizationRow{
 			Timestamp:              h.Time,
 			AccountID:              uu.AccountID,
@@ -180,7 +191,7 @@ func (h *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 			CacheEngine:            uu.CacheEngine,
 			DatabaseEngine:         uu.DatabaseEngine,
 			DeploymentOption:       uu.DeploymentOption,
-			Date:                   uu.Date,
+			Date:                   date,
 			Hours:                  uu.Hours,
 			Num:                    uu.Num,
 			Percentage:             uu.Percentage,

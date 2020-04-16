@@ -3,6 +3,7 @@ module github.com/itsubaki/hermes-lambda
 go 1.12
 
 require (
+	cloud.google.com/go v0.53.0
 	cloud.google.com/go/bigquery v1.5.0
 	github.com/aws/aws-lambda-go v1.15.0
 	github.com/aws/aws-sdk-go v1.29.27
