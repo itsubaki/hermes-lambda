@@ -15,17 +15,8 @@ select
 from
   `hermes_lambda.1d_account_cost`
  where
-  timestamp =
-  (
-  select
-    timestamp
-   from
-    `hermes_lambda.1d_account_cost`
-   where
-    date = "2020-04-12"
-    order by timestamp desc
-    limit 1
-  )
+  date = "2020-04-15" and
+  timestamp = (select max(timestamp) from `hermes_lambda.1d_account_cost` )
   group by description
   order by unblended_cost desc
 ```
@@ -35,20 +26,11 @@ select
   description,
   round(sum(covering_cost_percentage), 4) as covering_cost_percentage
 from
-  `hermes_lambda.1m_utilization`
+  `hermes_lambda.1d_utilization`
  where
   region = "ap-northeast-1" and
-  timestamp =
-  (
-  select
-    timestamp
-   from
-    `hermes_lambda.1m_utilization`
-   where
-    date = "2020-03-01"
-    order by timestamp desc
-    limit 1
-  )
+  date = "2020-03-01" and
+  timestamp = (select max(timestamp) from `hermes_lambda.1d_utilization`)
   group by description
   order by covering_cost_percentage desc
 ```
