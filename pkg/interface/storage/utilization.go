@@ -11,7 +11,7 @@ import (
 )
 
 type Utilization struct {
-	Storage         *Storage
+	Storage         Storage
 	SuppressWarning bool
 }
 

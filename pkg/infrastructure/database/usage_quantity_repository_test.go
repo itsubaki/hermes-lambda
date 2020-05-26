@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
+
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
+
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
 )
 
 func TestUsageQuantityRepository(t *testing.T) {
-	e := infrastructure.Env()
-	h, _ := infrastructure.New(e.Driver, e.DataSource, e.Database)
+	e := environ.New()
+	h, _ := handler.New(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
 	r := database.NewUsageQuantityRepository(h)
 
