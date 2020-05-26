@@ -6,13 +6,19 @@ import (
 )
 
 type Env struct {
-	Dir             string
-	Period          []string
-	Region          []string
-	Driver          string
-	DataSource      string
-	Database        string
-	SuppressWarning bool
+	Dir              string
+	Period           []string
+	Region           []string
+	SuppressWarning  bool
+	IgnoreRecordType []string
+	Driver           string // database
+	DataSource       string // database
+	Database         string // database
+	BucketName       string // aws s3
+	DataSetName      string // gcp bigquery
+	Credential       string // gcp bigquery
+	MkrAPIKey        string // mackerel
+	MkrServiceName   string // mackerel
 }
 
 func Default() *Env {
@@ -28,10 +34,17 @@ func Default() *Env {
 			"us-west-1",
 			"us-west-2",
 		},
-		Driver:          "mysql",
-		DataSource:      "root:secret@tcp(127.0.0.1:3306)/",
-		Database:        "hermes",
 		SuppressWarning: true,
+		IgnoreRecordType: []string{
+			"Tax",
+			"Enterprise Discount Program Discount",
+		},
+		Driver:      "mysql",
+		DataSource:  "root:secret@tcp(127.0.0.1:3306)/",
+		Database:    "hermes",
+		BucketName:  "hermes-lambda",
+		DataSetName: "hermes_lambda",
+		Credential:  "./credential.json",
 	}
 }
 
@@ -53,6 +66,16 @@ func Environ() *Env {
 		e.Region = strings.Split(region, ",")
 	}
 
+	warning := os.Getenv("SUPPRESS_WARNING")
+	if warning == "FALSE" || warning == "false" {
+		e.SuppressWarning = false
+	}
+
+	ignoreRecordType := os.Getenv("IGNORE_RECORD_TYPE")
+	if len(ignoreRecordType) > 0 {
+		e.IgnoreRecordType = strings.Split(ignoreRecordType, ",")
+	}
+
 	driver := os.Getenv("DRIVER")
 	if len(driver) > 0 {
 		e.Driver = driver
@@ -68,9 +91,29 @@ func Environ() *Env {
 		e.Database = database
 	}
 
-	warning := os.Getenv("SUPPRESS_WARNING")
-	if warning == "FALSE" || warning == "false" {
-		e.SuppressWarning = false
+	bucketName := os.Getenv("BUCKET_NAME")
+	if len(bucketName) > 0 {
+		e.BucketName = bucketName
+	}
+
+	datasetName := os.Getenv("DATASET_NAME")
+	if len(datasetName) > 0 {
+		e.DataSetName = datasetName
+	}
+
+	credential := os.Getenv("CREDENTIAL")
+	if len(credential) > 0 {
+		e.Credential = credential
+	}
+
+	apikey := os.Getenv("MACKEREL_APIKEY")
+	if len(apikey) > 0 {
+		e.MkrAPIKey = apikey
+	}
+
+	service := os.Getenv("MACKEREL_SERVICE_NAME")
+	if len(service) > 0 {
+		e.MkrServiceName = service
 	}
 
 	return e

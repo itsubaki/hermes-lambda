@@ -8,7 +8,7 @@ import (
 )
 
 type Pricing struct {
-	Storage *Storage
+	Storage Storage
 }
 
 func (p *Pricing) Fetch(bucketName string, region []string) error {

@@ -21,16 +21,16 @@ func TestStorage(t *testing.T) {
 		t.Errorf("create if not exists: %v", err)
 	}
 
-	if err := s3.Write(b, "test/hogehoge.txt", []byte("hogehoge")); err != nil {
+	if err := s3.Write(b, "test/storage_test.txt", []byte("hello")); err != nil {
 		t.Errorf("write :%v", err)
 	}
 
-	out, err := s3.Read(b, "test/hogehoge.txt")
+	out, err := s3.Read(b, "test/storage_test.txt")
 	if err != nil {
 		t.Errorf("read: %v", err)
 	}
 
-	exists, err := s3.Exists(b, "test/hogehoge.txt")
+	exists, err := s3.Exists(b, "test/storage_test.txt")
 	if err != nil {
 		t.Errorf("exists: %v", err)
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 type AccountCost struct {
-	Storage *Storage
+	Storage Storage
 }
 
 func (c *AccountCost) UnblendedCost(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
