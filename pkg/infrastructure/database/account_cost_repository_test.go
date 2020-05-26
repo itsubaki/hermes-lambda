@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
+
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
 
 	"github.com/itsubaki/hermes-lambda/pkg/domain"
@@ -12,7 +14,7 @@ import (
 )
 
 func TestAccountCostRepository(t *testing.T) {
-	e := main.Env()
+	e := environ.New()
 	h, _ := handler.New(e.Driver, e.DataSource, e.Database)
 	defer h.Close()
 	r := database.NewAccountCostRepository(h)
