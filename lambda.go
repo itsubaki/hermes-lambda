@@ -12,8 +12,8 @@ import (
 	"github.com/mackerelio/mackerel-client-go"
 
 	"github.com/itsubaki/hermes-lambda/pkg/domain"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
 	dhandler "github.com/itsubaki/hermes-lambda/pkg/infrastructure/dataset"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
 	shandler "github.com/itsubaki/hermes-lambda/pkg/infrastructure/storage"
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
@@ -28,20 +28,20 @@ import (
 
 type HermesLambda struct {
 	Time        time.Time
-	Environ     *infrastructure.Env
+	Env         *environ.Env
 	Pricing     *storage.Pricing
 	AccountCost *storage.AccountCost
 	Utilization *storage.Utilization
 }
 
-func Default(e *infrastructure.Env) (*HermesLambda, error) {
+func Default(e *environ.Env) *HermesLambda {
 	return &HermesLambda{
-		Time:    time.Now(),
-		Environ: e,
-	}, nil
+		Time: time.Now(),
+		Env:  e,
+	}
 }
 
-func New(e *infrastructure.Env) (*HermesLambda, error) {
+func New(e *environ.Env) (*HermesLambda, error) {
 	s3, err := shandler.New()
 	if err != nil {
 		return nil, fmt.Errorf("new storage: %v", err)
@@ -53,7 +53,7 @@ func New(e *infrastructure.Env) (*HermesLambda, error) {
 
 	return &HermesLambda{
 		Time:        time.Now(),
-		Environ:     e,
+		Env:         e,
 		Pricing:     &storage.Pricing{Storage: s3},
 		AccountCost: &storage.AccountCost{Storage: s3},
 		Utilization: &storage.Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
@@ -78,17 +78,15 @@ func (l *HermesLambda) Run() error {
 }
 
 func (l *HermesLambda) Fetch() error {
-	e := l.Environ
-
-	if err := l.Pricing.Fetch(e.BucketName, e.Region); err != nil {
+	if err := l.Pricing.Fetch(l.Env.BucketName, l.Env.Region); err != nil {
 		return fmt.Errorf("fetch pricing: %v", err)
 	}
 
-	if err := l.AccountCost.Fetch(e.Period, e.BucketName); err != nil {
+	if err := l.AccountCost.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
 		return fmt.Errorf("fetch account cost: %v", err)
 	}
 
-	if err := l.Utilization.Fetch(e.Period, e.BucketName); err != nil {
+	if err := l.Utilization.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
 		return fmt.Errorf("fetch utilization: %v", err)
 	}
 
@@ -96,9 +94,7 @@ func (l *HermesLambda) Fetch() error {
 }
 
 func (l *HermesLambda) Put(items []dataset.Items) error {
-	e := l.Environ
-
-	ds, err := dhandler.New(e.DataSetName, e.Credential)
+	ds, err := dhandler.New(l.Env.DataSetName, l.Env.Credential)
 	if err != nil {
 		return fmt.Errorf("new dataset: %v", err)
 	}
@@ -118,10 +114,9 @@ func (l *HermesLambda) Put(items []dataset.Items) error {
 }
 
 func (l *HermesLambda) Items() ([]dataset.Items, error) {
-	e := l.Environ
 	out := make([]dataset.Items, 0)
 
-	for _, p := range e.Period {
+	for _, p := range l.Env.Period {
 		items, err := l.AccountCostItems(p)
 		if err != nil {
 			return out, fmt.Errorf("account cost items: %v", err)
@@ -129,7 +124,7 @@ func (l *HermesLambda) Items() ([]dataset.Items, error) {
 		out = append(out, items)
 	}
 
-	for _, p := range e.Period {
+	for _, p := range l.Env.Period {
 		items, err := l.UtilizationItems(p)
 		if err != nil {
 			return out, fmt.Errorf("utilization items: %v", err)
@@ -141,9 +136,7 @@ func (l *HermesLambda) Items() ([]dataset.Items, error) {
 }
 
 func (l *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
-	e := l.Environ
-
-	c, err := l.AccountCost.Read(p, e.BucketName)
+	c, err := l.AccountCost.Read(p, l.Env.BucketName)
 	if err != nil {
 		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
@@ -205,9 +198,7 @@ func (l *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
 }
 
 func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
-	e := l.Environ
-
-	u, err := l.Utilization.Read(p, e.BucketName, e.Region)
+	u, err := l.Utilization.Read(p, l.Env.BucketName, l.Env.Region)
 	if err != nil {
 		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
@@ -265,10 +256,9 @@ func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 }
 
 func (l *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
-	e := l.Environ
 	values := make([]*mackerel.MetricValue, 0)
 
-	for _, p := range e.Period {
+	for _, p := range l.Env.Period {
 		v, err := l.MetricValuesWith(p)
 		if err != nil {
 			return values, err
@@ -281,15 +271,14 @@ func (l *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
 }
 
 func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue, error) {
-	e := l.Environ
 	values := make([]*mackerel.MetricValue, 0)
 
-	u, err := l.AccountCost.UnblendedCost(period, e.BucketName, e.IgnoreRecordType, e.Region)
+	u, err := l.AccountCost.UnblendedCost(period, l.Env.BucketName, l.Env.IgnoreRecordType, l.Env.Region)
 	if err != nil {
 		return values, fmt.Errorf("unblended cost: %v", err)
 	}
 
-	c, err := l.Utilization.CoveringCost(period, e.BucketName, e.Region)
+	c, err := l.Utilization.CoveringCost(period, l.Env.BucketName, l.Env.Region)
 	if err != nil {
 		return values, fmt.Errorf("covering cost: %v", err)
 	}
@@ -333,8 +322,8 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 }
 
 func (l *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) error {
-	c := mackerel.NewClient(l.Environ.MkrAPIKey)
-	if err := c.PostServiceMetricValues(l.Environ.MkrServiceName, values); err != nil {
+	c := mackerel.NewClient(l.Env.MkrAPIKey)
+	if err := c.PostServiceMetricValues(l.Env.MkrServiceName, values); err != nil {
 		return fmt.Errorf("post service metirc values: %v\n", err)
 	}
 
@@ -342,14 +331,12 @@ func (l *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) e
 }
 
 func (l *HermesLambda) Store() error {
-	e := l.Environ
-
-	date, err := calendar.Last(e.Period[0])
+	date, err := calendar.Last(l.Env.Period[0])
 	if err != nil {
-		return fmt.Errorf("calendar.Last period=%s: %v", e.Period, err)
+		return fmt.Errorf("calendar.Last period=%s: %v", l.Env.Period, err)
 	}
 
-	h, err := handler.New(e.Driver, e.DataSource, e.Database)
+	h, err := handler.New(l.Env.Driver, l.Env.DataSource, l.Env.Database)
 	if err != nil {
 		return fmt.Errorf("new handler: %v", err)
 	}
@@ -358,12 +345,12 @@ func (l *HermesLambda) Store() error {
 	// pricing
 	{
 		log.Println("serialize pricing")
-		if err := pricing.Serialize(e.Dir, e.Region); err != nil {
+		if err := pricing.Serialize(l.Env.Dir, l.Env.Region); err != nil {
 			return fmt.Errorf("serialize pricing: %v", err)
 		}
 
 		log.Println("deserialize pricing")
-		price, err := pricing.Deserialize(e.Dir, e.Region)
+		price, err := pricing.Deserialize(l.Env.Dir, l.Env.Region)
 		if err != nil {
 			return fmt.Errorf("deserialize pricing: %v\n", err)
 		}
@@ -398,7 +385,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if e.SuppressWarning {
+				if l.Env.SuppressWarning {
 					continue
 				}
 
@@ -415,12 +402,12 @@ func (l *HermesLambda) Store() error {
 	// account cost
 	{
 		log.Println("serialize account cost")
-		if err := cost.Serialize(e.Dir, date); err != nil {
+		if err := cost.Serialize(l.Env.Dir, date); err != nil {
 			return fmt.Errorf("serialize cost: %v", err)
 		}
 
 		log.Println("deserialize account cost")
-		ac, err := cost.Deserialize(e.Dir, date)
+		ac, err := cost.Deserialize(l.Env.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize cost: %v", err)
 		}
@@ -451,7 +438,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if e.SuppressWarning {
+				if l.Env.SuppressWarning {
 					continue
 				}
 
@@ -468,12 +455,12 @@ func (l *HermesLambda) Store() error {
 	// usage quantity
 	{
 		log.Println("serialize usage quantity")
-		if err := usage.Serialize(e.Dir, date); err != nil {
+		if err := usage.Serialize(l.Env.Dir, date); err != nil {
 			return fmt.Errorf("serialize usage quantity: %v", err)
 		}
 
 		log.Println("deserialize usage quantity")
-		u, err := usage.Deserialize(e.Dir, date)
+		u, err := usage.Deserialize(l.Env.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize usage quantity: %v", err)
 		}
@@ -502,7 +489,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if e.SuppressWarning {
+				if l.Env.SuppressWarning {
 					continue
 				}
 
@@ -519,25 +506,25 @@ func (l *HermesLambda) Store() error {
 	// reservation utilization
 	{
 		log.Println("serialize reservation utilization")
-		if err := reservation.Serialize(e.Dir, date); err != nil {
+		if err := reservation.Serialize(l.Env.Dir, date); err != nil {
 			return fmt.Errorf("serialize reservation utilization: %v", err)
 		}
 
 		log.Println("deserialize reservation utilization")
-		res, err := reservation.Deserialize(e.Dir, date)
+		res, err := reservation.Deserialize(l.Env.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize reservation utilization: %v", err)
 		}
 
 		log.Println("deserialize pricing")
-		plist, err := pricing.Deserialize(e.Dir, e.Region)
+		plist, err := pricing.Deserialize(l.Env.Dir, l.Env.Region)
 		if err != nil {
 			return fmt.Errorf("desirialize pricing: %v\n", err)
 		}
 
 		log.Println("add covering cost")
 		w := reservation.AddCoveringCost(plist, res)
-		if !e.SuppressWarning {
+		if !l.Env.SuppressWarning {
 			for _, ww := range w {
 				log.Printf("[WARN] %s", ww)
 			}
@@ -567,7 +554,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if e.SuppressWarning {
+				if l.Env.SuppressWarning {
 					continue
 				}
 

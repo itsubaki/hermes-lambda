@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -21,7 +21,7 @@ func main() {
 func handle(c context.Context) error {
 	log.Printf("context: %v", c)
 
-	e := infrastructure.Environ()
+	e := environ.New()
 	log.Printf("env=%#v", e)
 
 	h, err := New(e)

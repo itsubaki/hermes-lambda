@@ -1,4 +1,4 @@
-package infrastructure
+package environ
 
 import (
 	"os"
@@ -48,7 +48,7 @@ func Default() *Env {
 	}
 }
 
-func Environ() *Env {
+func New() *Env {
 	e := Default()
 
 	dir := os.Getenv("DIR")
