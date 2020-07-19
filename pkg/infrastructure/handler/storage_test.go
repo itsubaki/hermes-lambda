@@ -1,4 +1,4 @@
-package storage
+package handler
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ func TestStorage(t *testing.T) {
 	os.Setenv("AWS_REGION", "ap-northeast-1")
 	os.Setenv("PERIOD", "1d")
 
-	s3, err := New()
+	s3, err := NewStorage()
 	if err != nil {
 		t.Errorf("new storage: %v", err)
 	}

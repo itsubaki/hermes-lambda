@@ -1,4 +1,4 @@
-package storage
+package handler
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ type Storage struct {
 	client *s3.S3
 }
 
-func New() (*Storage, error) {
+func NewStorage() (*Storage, error) {
 	s := session.Must(session.NewSession())
 	c := s3.New(s)
 

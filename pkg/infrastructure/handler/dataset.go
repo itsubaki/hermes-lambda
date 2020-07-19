@@ -1,4 +1,4 @@
-package dataset
+package handler
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type DataSet struct {
 	Name    string
 }
 
-func New(name, credential string) (*DataSet, error) {
+func NewDataSet(name, credential string) (*DataSet, error) {
 	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credential)
 
 	ctx := context.Background()

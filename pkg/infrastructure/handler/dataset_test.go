@@ -1,4 +1,4 @@
-package dataset
+package handler
 
 import (
 	"os"
@@ -14,7 +14,7 @@ func TestDataSet(t *testing.T) {
 	os.Setenv("BUCKET_NAME", "hermes-lambda-j96qd0m3kh1")
 	os.Setenv("PERIOD", "1d")
 
-	ds, err := New("hermes_lambda", "../../../credential.json")
+	ds, err := NewDataSet("hermes_lambda", "../../../credential.json")
 	if err != nil {
 		t.Errorf("new dataset: %v", err)
 	}
