@@ -12,12 +12,12 @@ type Env struct {
 	SuppressWarning  bool
 	IgnoreRecordType []string
 	Output           []string
+	BucketName       string // aws s3
 	Driver           string // database
 	DataSource       string // database
 	Database         string // database
-	BucketName       string // aws s3
-	DataSetName      string // gcp bigquery
-	Credential       string // gcp bigquery
+	DataSetName      string // bigquery
+	Credential       string // bigquery
 	MkrAPIKey        string // mackerel
 	MkrServiceName   string // mackerel
 }
@@ -38,15 +38,14 @@ func Default() *Env {
 		SuppressWarning: true,
 		IgnoreRecordType: []string{
 			"Tax",
-			"Enterprise Discount Program Discount",
 		},
 		Output: []string{
 			"mackerel",
 		},
+		BucketName:  "hermes-lambda",
 		Driver:      "mysql",
 		DataSource:  "root:secret@tcp(127.0.0.1:3306)/",
 		Database:    "hermes",
-		BucketName:  "hermes-lambda",
 		DataSetName: "hermes_lambda",
 		Credential:  "./credential.json",
 	}
