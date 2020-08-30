@@ -2,6 +2,7 @@ package lambda
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
@@ -41,4 +42,32 @@ func New(e *environ.Env) (*HermesLambda, error) {
 		AccountCost: &storage.AccountCost{Storage: s3},
 		Utilization: &storage.Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
 	}, nil
+}
+
+func (h *HermesLambda) Run() error {
+	for _, o := range h.Env.Output {
+		if strings.ToLower(o) == "bigquery" {
+			if err := h.PutItems(); err != nil {
+				return fmt.Errorf("output to bigquery: %v", err)
+			}
+		}
+
+		if strings.ToLower(o) == "mackerel" {
+			v, err := h.MetricValues()
+			if err != nil {
+				return fmt.Errorf("metric values of mackerel: %v", err)
+			}
+			if err := h.PostServiceMetricValues(v); err != nil {
+				return fmt.Errorf("output to mackerel: %v", err)
+			}
+		}
+
+		if strings.ToLower(o) == "database" {
+			if err := h.Store(); err != nil {
+				return fmt.Errorf("output to database: %v", err)
+			}
+		}
+	}
+
+	return nil
 }

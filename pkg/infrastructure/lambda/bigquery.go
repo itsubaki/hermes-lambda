@@ -10,7 +10,7 @@ import (
 	"github.com/itsubaki/hermes-lambda/pkg/interface/dataset"
 )
 
-func (l *HermesLambda) Run() error {
+func (l *HermesLambda) PutItems() error {
 	if err := l.Fetch(); err != nil {
 		return fmt.Errorf("fetch: %v", err)
 	}
