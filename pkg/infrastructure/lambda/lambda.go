@@ -44,29 +44,41 @@ func New(e *environ.Env) (*HermesLambda, error) {
 	}, nil
 }
 
-func (h *HermesLambda) Run() error {
-	for _, o := range h.Env.Output {
+func (l *HermesLambda) Run() error {
+	for _, o := range l.Env.Output {
 		if strings.ToLower(o) == "bigquery" {
-			if err := h.PutItems(); err != nil {
+			if err := l.PutItems(); err != nil {
 				return fmt.Errorf("output to bigquery: %v", err)
 			}
 		}
 
 		if strings.ToLower(o) == "mackerel" {
-			v, err := h.MetricValues()
-			if err != nil {
-				return fmt.Errorf("metric values of mackerel: %v", err)
-			}
-			if err := h.PostServiceMetricValues(v); err != nil {
+			if err := l.PostServiceMetricValues(); err != nil {
 				return fmt.Errorf("output to mackerel: %v", err)
 			}
 		}
 
 		if strings.ToLower(o) == "database" {
-			if err := h.Store(); err != nil {
+			if err := l.Store(); err != nil {
 				return fmt.Errorf("output to database: %v", err)
 			}
 		}
+	}
+
+	return nil
+}
+
+func (l *HermesLambda) Fetch() error {
+	if err := l.Pricing.Fetch(l.Env.BucketName, l.Env.Region); err != nil {
+		return fmt.Errorf("fetch pricing: %v", err)
+	}
+
+	if err := l.AccountCost.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
+		return fmt.Errorf("fetch account cost: %v", err)
+	}
+
+	if err := l.Utilization.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
+		return fmt.Errorf("fetch utilization: %v", err)
 	}
 
 	return nil

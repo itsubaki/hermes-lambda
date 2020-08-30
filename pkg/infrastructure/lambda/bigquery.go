@@ -27,22 +27,6 @@ func (l *HermesLambda) PutItems() error {
 	return nil
 }
 
-func (l *HermesLambda) Fetch() error {
-	if err := l.Pricing.Fetch(l.Env.BucketName, l.Env.Region); err != nil {
-		return fmt.Errorf("fetch pricing: %v", err)
-	}
-
-	if err := l.AccountCost.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
-		return fmt.Errorf("fetch account cost: %v", err)
-	}
-
-	if err := l.Utilization.Fetch(l.Env.Period, l.Env.BucketName); err != nil {
-		return fmt.Errorf("fetch utilization: %v", err)
-	}
-
-	return nil
-}
-
 func (l *HermesLambda) Items() ([]dataset.Items, error) {
 	out := make([]dataset.Items, 0)
 

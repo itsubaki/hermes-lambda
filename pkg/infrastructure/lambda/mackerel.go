@@ -7,7 +7,16 @@ import (
 	mackerel "github.com/mackerelio/mackerel-client-go"
 )
 
-func (l *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) error {
+func (l *HermesLambda) PostServiceMetricValues() error {
+	if err := l.Fetch(); err != nil {
+		return fmt.Errorf("fetch: %v", err)
+	}
+
+	values, err := l.MetricValues()
+	if err != nil {
+		return fmt.Errorf("metric values: %v", err)
+	}
+
 	c := mackerel.NewClient(l.Env.MkrAPIKey)
 	if err := c.PostServiceMetricValues(l.Env.MkrServiceName, values); err != nil {
 		return fmt.Errorf("post service metirc values: %v\n", err)
@@ -18,7 +27,6 @@ func (l *HermesLambda) PostServiceMetricValues(values []*mackerel.MetricValue) e
 
 func (l *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
-
 	for _, p := range l.Env.Period {
 		v, err := l.MetricValuesWith(p)
 		if err != nil {
