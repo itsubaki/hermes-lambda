@@ -158,11 +158,11 @@ func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 		key := fmt.Sprintf("%s_%s", uu.Region, uu.Date)
 		v, ok := total[key]
 		if !ok {
-			total[key] = uu.CoveringCost
+			total[key] = uu.OnDemandConversionCost
 			continue
 		}
 
-		total[key] = v + uu.CoveringCost
+		total[key] = v + uu.OnDemandConversionCost
 	}
 
 	items := make([]*dataset.UtilizationRow, 0)
@@ -173,21 +173,21 @@ func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 		}
 
 		items = append(items, &dataset.UtilizationRow{
-			Timestamp:              l.Time,
-			AccountID:              uu.AccountID,
-			Description:            uu.Description,
-			Region:                 uu.Region,
-			InstanceType:           uu.InstanceType,
-			Platform:               uu.Platform,
-			CacheEngine:            uu.CacheEngine,
-			DatabaseEngine:         uu.DatabaseEngine,
-			DeploymentOption:       uu.DeploymentOption,
-			Date:                   date,
-			Hours:                  uu.Hours,
-			Num:                    uu.Num,
-			Percentage:             uu.Percentage,
-			CoveringCost:           uu.CoveringCost,
-			CoveringCostPercentage: uu.CoveringCost / total[uu.Region] * 100,
+			Timestamp:                        l.Time,
+			AccountID:                        uu.AccountID,
+			Description:                      uu.Description,
+			Region:                           uu.Region,
+			InstanceType:                     uu.InstanceType,
+			Platform:                         uu.Platform,
+			CacheEngine:                      uu.CacheEngine,
+			DatabaseEngine:                   uu.DatabaseEngine,
+			DeploymentOption:                 uu.DeploymentOption,
+			Date:                             date,
+			Hours:                            uu.Hours,
+			Num:                              uu.Num,
+			Percentage:                       uu.Percentage,
+			OnDemandConversionCost:           uu.OnDemandConversionCost,
+			OnDemandConversionCostPercentage: uu.OnDemandConversionCost / total[uu.Region] * 100,
 		})
 	}
 

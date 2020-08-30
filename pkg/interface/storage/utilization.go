@@ -15,7 +15,7 @@ type Utilization struct {
 	SuppressWarning bool
 }
 
-func (u *Utilization) CoveringCost(period, bucketName string, region []string) (map[string]float64, error) {
+func (u *Utilization) OnDemandConversionCost(period, bucketName string, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
 	date, err := calendar.Last(period)
@@ -53,7 +53,7 @@ func (u *Utilization) CoveringCost(period, bucketName string, region []string) (
 			return out, fmt.Errorf("unmarshal: %v", err)
 		}
 
-		for _, e := range reservation.AddCoveringCost(price, util) {
+		for _, e := range reservation.AddOnDemandConversionCost(price, util) {
 			if u.SuppressWarning {
 				continue
 			}
@@ -64,11 +64,11 @@ func (u *Utilization) CoveringCost(period, bucketName string, region []string) (
 		for _, u := range util {
 			v, ok := out[u.Description]
 			if !ok {
-				out[u.Description] = u.CoveringCost
+				out[u.Description] = u.OnDemandConversionCost
 				continue
 			}
 
-			out[u.Description] = v + u.CoveringCost
+			out[u.Description] = v + u.OnDemandConversionCost
 		}
 	}
 
@@ -112,7 +112,7 @@ func (u *Utilization) Read(period, bucketName string, region []string) ([]reserv
 			return out, fmt.Errorf("unmarshal reservation.Utilization: %v", err)
 		}
 
-		for _, e := range reservation.AddCoveringCost(price, list) {
+		for _, e := range reservation.AddOnDemandConversionCost(price, list) {
 			if u.SuppressWarning {
 				continue
 			}

@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go v1.29.27
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/itsubaki/hermes v0.0.0-20200319023451-465be279ec8a
+	github.com/itsubaki/hermes v0.0.0-20200829025556-78bd0d6a13fe
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/mackerelio/mackerel-client-go v0.9.1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

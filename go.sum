@@ -87,8 +87,8 @@ github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5m
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
-github.com/itsubaki/hermes v0.0.0-20200319023451-465be279ec8a h1:rmh2FG9rGl2qxCx/5HGe823f5FEYlOsJXlSeRf390WQ=
-github.com/itsubaki/hermes v0.0.0-20200319023451-465be279ec8a/go.mod h1:SjF9bype3lvge01TDYXE1hzmXtJgcnYdm8X6VEQbxZg=
+github.com/itsubaki/hermes v0.0.0-20200829025556-78bd0d6a13fe h1:c+jTDNbyJIdCZqjtQ9qcZtkZk6SHPND+69qLd4UmzsA=
+github.com/itsubaki/hermes v0.0.0-20200829025556-78bd0d6a13fe/go.mod h1:SjF9bype3lvge01TDYXE1hzmXtJgcnYdm8X6VEQbxZg=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.3.0 h1:OS12ieG61fsCg5+qLJ+SsW9NicxNkg3b25OyT2yCeUc=

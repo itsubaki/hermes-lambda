@@ -206,8 +206,8 @@ func (l *HermesLambda) Store() error {
 			return fmt.Errorf("desirialize pricing: %v\n", err)
 		}
 
-		log.Println("add covering cost")
-		w := reservation.AddCoveringCost(plist, res)
+		log.Println("add ondemand conversion cost")
+		w := reservation.AddOnDemandConversionCost(plist, res)
 		if !l.Env.SuppressWarning {
 			for _, ww := range w {
 				log.Printf("[WARN] %s", ww)
@@ -218,19 +218,19 @@ func (l *HermesLambda) Store() error {
 		r := database.NewUtilizationRepository(h)
 		for _, u := range res {
 			o := &domain.Utilization{
-				AccountID:        u.AccountID,
-				Description:      u.Description,
-				Region:           u.Region,
-				InstanceType:     u.InstanceType,
-				Platform:         u.Platform,
-				CacheEngine:      u.CacheEngine,
-				DatabaseEngine:   u.DatabaseEngine,
-				DeploymentOption: u.DeploymentOption,
-				Date:             u.Date,
-				Hours:            u.Hours,
-				Num:              u.Num,
-				Percentage:       u.Percentage,
-				CoveringCost:     u.CoveringCost,
+				AccountID:              u.AccountID,
+				Description:            u.Description,
+				Region:                 u.Region,
+				InstanceType:           u.InstanceType,
+				Platform:               u.Platform,
+				CacheEngine:            u.CacheEngine,
+				DatabaseEngine:         u.DatabaseEngine,
+				DeploymentOption:       u.DeploymentOption,
+				Date:                   u.Date,
+				Hours:                  u.Hours,
+				Num:                    u.Num,
+				Percentage:             u.Percentage,
+				OnDemandConversionCost: u.OnDemandConversionCost,
 			}
 
 			if err := o.GenID(); err != nil {

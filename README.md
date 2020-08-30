@@ -1,7 +1,9 @@
 # hermes-lambda
+
 lambda function of hermes
 
 ## deploy
+
 ```shell script
 AWS_PROFILE=hoghoge S3Bucket=foobar make deploy
 ```
@@ -24,7 +26,7 @@ from
 ```sql
 select
   description,
-  round(sum(covering_cost_percentage), 4) as covering_cost_percentage
+  round(sum(ondemand_conversion_cost_percentage), 4) as ondemand_conversion_cost_percentage
 from
   `hermes_lambda.1d_utilization`
  where
@@ -32,5 +34,5 @@ from
   date = "2020-03-01" and
   timestamp = (select max(timestamp) from `hermes_lambda.1d_utilization` where date = "2020-03-01" )
   group by description
-  order by covering_cost_percentage desc
+  order by ondemand_conversion_cost_percentage desc
 ```

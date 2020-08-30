@@ -39,9 +39,9 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 		return values, fmt.Errorf("unblended cost: %v", err)
 	}
 
-	c, err := l.Utilization.CoveringCost(period, l.Env.BucketName, l.Env.Region)
+	c, err := l.Utilization.OnDemandConversionCost(period, l.Env.BucketName, l.Env.Region)
 	if err != nil {
-		return values, fmt.Errorf("covering cost: %v", err)
+		return values, fmt.Errorf("ondemand conversion cost: %v", err)
 	}
 
 	total := make(map[string]float64)
@@ -64,7 +64,7 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 
 	for k, v := range c {
 		values = append(values, &mackerel.MetricValue{
-			Name:  fmt.Sprintf("aws.%s.ri_covering_cost.%s", period, strings.Replace(k, " ", "", -1)),
+			Name:  fmt.Sprintf("aws.%s.ri_ondemand_conversion_cost.%s", period, strings.Replace(k, " ", "", -1)),
 			Time:  l.Time.Unix(),
 			Value: v,
 		})
@@ -72,7 +72,7 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 
 	for k, v := range total {
 		values = append(values, &mackerel.MetricValue{
-			Name:  fmt.Sprintf("aws.%s.rebate_cost.%s", period, strings.Replace(k, " ", "", -1)),
+			Name:  fmt.Sprintf("aws.%s.total_cost.%s", period, strings.Replace(k, " ", "", -1)),
 			Time:  l.Time.Unix(),
 			Value: v,
 		})
