@@ -11,6 +11,7 @@ type Env struct {
 	Region           []string
 	SuppressWarning  bool
 	IgnoreRecordType []string
+	Output           []string
 	Driver           string // database
 	DataSource       string // database
 	Database         string // database
@@ -38,6 +39,9 @@ func Default() *Env {
 		IgnoreRecordType: []string{
 			"Tax",
 			"Enterprise Discount Program Discount",
+		},
+		Output: []string{
+			"mackerel",
 		},
 		Driver:      "mysql",
 		DataSource:  "root:secret@tcp(127.0.0.1:3306)/",
@@ -74,6 +78,11 @@ func New() *Env {
 	ignoreRecordType := os.Getenv("IGNORE_RECORD_TYPE")
 	if len(ignoreRecordType) > 0 {
 		e.IgnoreRecordType = strings.Split(ignoreRecordType, ",")
+	}
+
+	output := os.Getenv("OUTPUT")
+	if len(output) > 0 {
+		e.Output = strings.Split(output, ",")
 	}
 
 	driver := os.Getenv("DRIVER")

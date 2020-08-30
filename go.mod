@@ -1,6 +1,6 @@
 module github.com/itsubaki/hermes-lambda
 
-go 1.12
+go 1.15
 
 require (
 	cloud.google.com/go v0.53.0
