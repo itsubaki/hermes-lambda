@@ -42,12 +42,13 @@ func Default() *Env {
 		Output: []string{
 			"mackerel",
 		},
-		BucketName:  "hermes-lambda",
-		Driver:      "mysql",
-		DataSource:  "root:secret@tcp(127.0.0.1:3306)/",
-		Database:    "hermes",
-		DataSetName: "hermes_lambda",
-		Credential:  "./credential.json",
+		BucketName:     "hermes-lambda",
+		Driver:         "mysql",
+		DataSource:     "root:secret@tcp(127.0.0.1:3306)/",
+		Database:       "hermes",
+		DataSetName:    "hermes_lambda",
+		Credential:     "./credential.json",
+		MkrServiceName: "aws",
 	}
 }
 

@@ -6,16 +6,16 @@ import (
 	"log"
 
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
-	lmda "github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda"
 
-	"github.com/aws/aws-lambda-go/lambda"
+	awslambda "github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("start")
 
-	lambda.Start(handle)
+	awslambda.Start(handle)
 	log.Println("finished")
 }
 
@@ -25,7 +25,7 @@ func handle(c context.Context) error {
 	e := environ.New()
 	log.Printf("env=%#v", e)
 
-	h, err := lmda.New(e)
+	h, err := lambda.New(e)
 	if err != nil {
 		return fmt.Errorf("new: %v", err)
 	}
