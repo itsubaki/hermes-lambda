@@ -8,6 +8,10 @@ import (
 )
 
 func (l *HermesLambda) PostServiceMetricValues() error {
+	if err := l.NewStorage(); err != nil {
+		return fmt.Errorf("new storage: %v", err)
+	}
+
 	if err := l.Fetch(); err != nil {
 		return fmt.Errorf("fetch: %v", err)
 	}

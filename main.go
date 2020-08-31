@@ -15,6 +15,10 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("start")
 
+	// if err := handle(context.TODO()); err != nil {
+	// 	log.Printf("handle: %v", err)
+	// }
+
 	awslambda.Start(handle)
 	log.Println("finished")
 }
@@ -25,12 +29,7 @@ func handle(c context.Context) error {
 	e := environ.New()
 	log.Printf("env=%#v", e)
 
-	h, err := lambda.New(e)
-	if err != nil {
-		return fmt.Errorf("new: %v", err)
-	}
-
-	if err := h.Run(); err != nil {
+	if err := lambda.Default(e).Run(); err != nil {
 		return fmt.Errorf("run: %v", err)
 	}
 

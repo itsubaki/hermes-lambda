@@ -25,23 +25,21 @@ func Default(e *environ.Env) *HermesLambda {
 	}
 }
 
-func New(e *environ.Env) (*HermesLambda, error) {
+func (l *HermesLambda) NewStorage() error {
 	s3, err := handler.NewStorage()
 	if err != nil {
-		return nil, fmt.Errorf("new storage: %v", err)
+		return fmt.Errorf("new storage: %v", err)
 	}
 
-	if err := s3.CreateIfNotExists(e.BucketName); err != nil {
-		return nil, fmt.Errorf("create bucket=%s if not exists: %v", e.BucketName, err)
+	if err := s3.CreateIfNotExists(l.Env.BucketName); err != nil {
+		return fmt.Errorf("create bucket=%s if not exists: %v", l.Env.BucketName, err)
 	}
 
-	return &HermesLambda{
-		Time:        time.Now(),
-		Env:         e,
-		Pricing:     &storage.Pricing{Storage: s3},
-		AccountCost: &storage.AccountCost{Storage: s3},
-		Utilization: &storage.Utilization{Storage: s3, SuppressWarning: e.SuppressWarning},
-	}, nil
+	l.Pricing = &storage.Pricing{Storage: s3}
+	l.AccountCost = &storage.AccountCost{Storage: s3}
+	l.Utilization = &storage.Utilization{Storage: s3, SuppressWarning: l.Env.SuppressWarning}
+
+	return nil
 }
 
 func (l *HermesLambda) Run() error {
