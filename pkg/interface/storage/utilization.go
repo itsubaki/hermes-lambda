@@ -18,58 +18,18 @@ type Utilization struct {
 func (u *Utilization) OnDemandConversionCost(period, bucketName string, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
-	date, err := calendar.Last(period)
+	util, err := u.Read(period, bucketName, region)
 	if err != nil {
-		return out, fmt.Errorf("get last period=%s: %v", period, err)
+		return out, fmt.Errorf("read: %v", err)
 	}
 
-	price := make([]pricing.Price, 0)
-	for _, r := range region {
-		key := fmt.Sprintf("pricing/%s.json", r)
-		b, err := u.Storage.Read(bucketName, key)
-		if err != nil {
-			return out, fmt.Errorf("read=%s: %v", key, err)
-		}
-		log.Printf("read s3://%s/%s\n", bucketName, key)
-
-		var p []pricing.Price
-		if err := json.Unmarshal(b, &p); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
-		}
-
-		price = append(price, p...)
-	}
-
-	for _, d := range date {
-		key := fmt.Sprintf("reservation/%s.json", d.String())
-		b, err := u.Storage.Read(bucketName, key)
-		if err != nil {
-			return out, fmt.Errorf("read=%s: %v", key, err)
-		}
-		log.Printf("read s3://%s/%s\n", bucketName, key)
-
-		var util []reservation.Utilization
-		if err := json.Unmarshal(b, &util); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
-		}
-
-		for _, e := range reservation.AddOnDemandConversionCost(price, util) {
-			if u.SuppressWarning {
-				continue
-			}
-
-			fmt.Printf("[WARN] %s\n", e)
-		}
-
-		for _, u := range util {
-			v, ok := out[u.Description]
-			if !ok {
-				out[u.Description] = u.OnDemandConversionCost
-				continue
-			}
-
+	for _, u := range util {
+		if v, ok := out[u.Description]; ok {
 			out[u.Description] = v + u.OnDemandConversionCost
+			continue
 		}
+
+		out[u.Description] = u.OnDemandConversionCost
 	}
 
 	return out, nil

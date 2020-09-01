@@ -14,52 +14,40 @@ type AccountCost struct {
 	Storage Storage
 }
 
+func IsIgnoreRecordType(c cost.AccountCost, ignoreRecordType []string) bool {
+	for _, i := range ignoreRecordType {
+		if c.RecordType == i {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (c *AccountCost) UnblendedCost(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
-	date, err := calendar.Last(period)
+	cost, err := c.Read(period, bucketName)
 	if err != nil {
-		return out, fmt.Errorf("get last period=%s: %v", period, err)
+		return out, fmt.Errorf("read: %v", err)
 	}
 
-	for _, d := range date {
-		key := fmt.Sprintf("cost/%s.json", d.String())
-		b, err := c.Storage.Read(bucketName, key)
+	for _, c := range cost {
+		if ignore := IsIgnoreRecordType(c, ignoreRecordType); ignore {
+			continue
+		}
+
+		a, err := strconv.ParseFloat(c.UnblendedCost.Amount, 64)
 		if err != nil {
-			return out, fmt.Errorf("s3 read: %v", err)
-		}
-		log.Printf("read s3://%s/%s\n", bucketName, key)
-
-		var cost []cost.AccountCost
-		if err := json.Unmarshal(b, &cost); err != nil {
-			return out, fmt.Errorf("unmarshal: %v", err)
+			return out, fmt.Errorf("parse float: %v", err)
 		}
 
-		for _, c := range cost {
-			ignore := false
-			for _, i := range ignoreRecordType {
-				if c.RecordType == i {
-					ignore = true
-					break
-				}
-			}
-
-			if ignore {
-				continue
-			}
-
-			a, err := strconv.ParseFloat(c.UnblendedCost.Amount, 64)
-			if err != nil {
-				return out, fmt.Errorf("parse float: %v", err)
-			}
-
-			v, ok := out[c.Description]
-			if !ok {
-				out[c.Description] = a
-				continue
-			}
+		if v, ok := out[c.Description]; ok {
 			out[c.Description] = v + a
+			continue
 		}
+
+		out[c.Description] = a
 	}
 
 	return out, nil

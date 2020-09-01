@@ -6,7 +6,6 @@ import (
 
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
-
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
 )
 
