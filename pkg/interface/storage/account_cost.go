@@ -65,7 +65,7 @@ func (c *AccountCost) Read(period, bucketName string) ([]cost.AccountCost, error
 		key := fmt.Sprintf("cost/%s.json", date[i].String())
 		read, err := c.Storage.Read(bucketName, key)
 		if err != nil {
-			return out, fmt.Errorf("read storage: %v", err)
+			return out, fmt.Errorf("read storage key=%s: %v", key, err)
 		}
 
 		var u []cost.AccountCost
