@@ -2,7 +2,6 @@ package lambda
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -92,6 +91,12 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 		})
 	}
 
+	v, err := l.MetricValuesGroupByServices(period)
+	if err != nil {
+		return values, fmt.Errorf("metric values group by servies: %v", err)
+	}
+	values = append(values, v...)
+
 	return values, nil
 }
 
@@ -124,18 +129,21 @@ func (l *HermesLambda) MetricValuesGroupByServices(period string) ([]*mackerel.M
 		services[c.Description][c.Service] = a
 	}
 
+	replacer := strings.NewReplacer(" ", "", "-", "", "AWS", "", "Amazon", "")
+
 	for d, s := range services {
 		desc := strings.ReplaceAll(d, " ", "")
-
 		for n, v := range s {
-			name := strings.ReplaceAll(strings.ReplaceAll(n, " ", "_"), "-", "")
+			name := replacer.Replace(n)
+			if len(name) > 16 {
+				name = name[:16]
+			}
+
 			values = append(values, &mackerel.MetricValue{
 				Name:  fmt.Sprintf("aws.%s.unblended_cost_%s.%s", period, desc, name),
 				Time:  l.Time.Unix(),
 				Value: v,
 			})
-
-			log.Printf("%s %s", desc, name)
 		}
 	}
 
