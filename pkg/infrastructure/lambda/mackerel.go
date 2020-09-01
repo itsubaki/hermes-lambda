@@ -46,7 +46,7 @@ func (l *HermesLambda) MetricValues() ([]*mackerel.MetricValue, error) {
 func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 
-	u, err := l.AccountCost.UnblendedCost(period, l.Env.BucketName, l.Env.IgnoreRecordType, l.Env.Region)
+	u, err := l.AccountCost.Unblended(period, l.Env.BucketName, l.Env.IgnoreRecordType, l.Env.Region)
 	if err != nil {
 		return values, fmt.Errorf("unblended cost: %v", err)
 	}
@@ -68,7 +68,7 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 
 	for k, v := range u {
 		values = append(values, &mackerel.MetricValue{
-			Name:  fmt.Sprintf("aws.%s.unblended_cost.%s", period, strings.Replace(k, " ", "", -1)),
+			Name:  fmt.Sprintf("aws.%s.unblended_cost.%s", period, strings.TrimSpace(k)),
 			Time:  l.Time.Unix(),
 			Value: v,
 		})
@@ -76,7 +76,7 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 
 	for k, v := range c {
 		values = append(values, &mackerel.MetricValue{
-			Name:  fmt.Sprintf("aws.%s.ri_ondemand_conversion_cost.%s", period, strings.Replace(k, " ", "", -1)),
+			Name:  fmt.Sprintf("aws.%s.ri_ondemand_conversion_cost.%s", period, strings.TrimSpace(k)),
 			Time:  l.Time.Unix(),
 			Value: v,
 		})
@@ -84,7 +84,7 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 
 	for k, v := range total {
 		values = append(values, &mackerel.MetricValue{
-			Name:  fmt.Sprintf("aws.%s.total_cost.%s", period, strings.Replace(k, " ", "", -1)),
+			Name:  fmt.Sprintf("aws.%s.total_cost.%s", period, strings.TrimSpace(k)),
 			Time:  l.Time.Unix(),
 			Value: v,
 		})

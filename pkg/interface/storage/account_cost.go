@@ -24,7 +24,7 @@ func IsIgnoreRecordType(c cost.AccountCost, ignoreRecordType []string) bool {
 	return false
 }
 
-func (c *AccountCost) UnblendedCost(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
+func (c *AccountCost) Unblended(period, bucketName string, ignoreRecordType, region []string) (map[string]float64, error) {
 	out := make(map[string]float64, 0)
 
 	cost, err := c.Read(period, bucketName)
