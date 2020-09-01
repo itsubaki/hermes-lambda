@@ -130,17 +130,19 @@ func (l *HermesLambda) MetricValuesGroupByServices(period string) ([]*mackerel.M
 	}
 
 	replacer := strings.NewReplacer(" ", "", "-", "", "AWS", "", "Amazon", "")
+	replace := func(name string) string {
+		ret := replacer.Replace(name)
+		if len(ret) > 16 {
+			ret = ret[:16]
+		}
+
+		return ret
+	}
 
 	for d, s := range services {
-		desc := strings.ReplaceAll(d, " ", "")
 		for n, v := range s {
-			name := replacer.Replace(n)
-			if len(name) > 16 {
-				name = name[:16]
-			}
-
 			values = append(values, &mackerel.MetricValue{
-				Name:  fmt.Sprintf("aws.%s.unblended_cost_%s.%s", period, desc, name),
+				Name:  fmt.Sprintf("aws.%s.unblended_cost_%s.%s", period, strings.ReplaceAll(d, " ", ""), replace(n)),
 				Time:  l.Time.Unix(),
 				Value: v,
 			})
