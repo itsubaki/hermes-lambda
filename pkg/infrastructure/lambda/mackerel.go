@@ -2,6 +2,8 @@ package lambda
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 
 	mackerel "github.com/mackerelio/mackerel-client-go"
@@ -90,44 +92,52 @@ func (l *HermesLambda) MetricValuesWith(period string) ([]*mackerel.MetricValue,
 		})
 	}
 
-	// read, err := l.AccountCost.Read(period, l.Env.BucketName)
-	// if err != nil {
-	// 	return values, fmt.Errorf("read: %v", err)
-	// }
+	return values, nil
+}
 
-	// services := make(map[string]map[string]float64)
-	// for _, c := range read {
-	// 	a, err := strconv.ParseFloat(c.UnblendedCost.Amount, 64)
-	// 	if err != nil {
-	// 		return values, fmt.Errorf("parse float: %v", err)
-	// 	}
+func (l *HermesLambda) MetricValuesGroupByServices(period string) ([]*mackerel.MetricValue, error) {
+	values := make([]*mackerel.MetricValue, 0)
 
-	// 	if v, ok := services[c.Description]; ok {
-	// 		if vv, ok2 := v[c.Service]; ok2 {
-	// 			services[c.Description][c.Service] = vv + a
-	// 			continue
-	// 		}
+	read, err := l.AccountCost.Read(period, l.Env.BucketName)
+	if err != nil {
+		return values, fmt.Errorf("read: %v", err)
+	}
 
-	// 		v[c.Service] = a
-	// 		continue
-	// 	}
+	services := make(map[string]map[string]float64)
+	for _, c := range read {
+		a, err := strconv.ParseFloat(c.UnblendedCost.Amount, 64)
+		if err != nil {
+			return values, fmt.Errorf("parse float: %v", err)
+		}
 
-	// 	services[c.Description] = make(map[string]float64)
-	// 	services[c.Description][c.Service] = a
-	// }
+		if v, ok := services[c.Description]; ok {
+			if vv, ok2 := v[c.Service]; ok2 {
+				services[c.Description][c.Service] = vv + a
+				continue
+			}
 
-	// for desc, service := range services {
-	// 	for n, v := range service {
-	// 		name := strings.ReplaceAll(strings.ReplaceAll(n, " ", "_"), "-", "")
-	// 		values = append(values, &mackerel.MetricValue{
-	// 			Name:  fmt.Sprintf("aws.%s.unblended_cost_%s.%s", period, strings.ReplaceAll(desc, " ", ""), name),
-	// 			Time:  l.Time.Unix(),
-	// 			Value: v,
-	// 		})
+			v[c.Service] = a
+			continue
+		}
 
-	// 		log.Printf("%s %s", desc, name)
-	// 	}
-	// }
+		services[c.Description] = make(map[string]float64)
+		services[c.Description][c.Service] = a
+	}
+
+	for d, s := range services {
+		desc := strings.ReplaceAll(d, " ", "")
+
+		for n, v := range s {
+			name := strings.ReplaceAll(strings.ReplaceAll(n, " ", "_"), "-", "")
+			values = append(values, &mackerel.MetricValue{
+				Name:  fmt.Sprintf("aws.%s.unblended_cost_%s.%s", period, desc, name),
+				Time:  l.Time.Unix(),
+				Value: v,
+			})
+
+			log.Printf("%s %s", desc, name)
+		}
+	}
 
 	return values, nil
 }
