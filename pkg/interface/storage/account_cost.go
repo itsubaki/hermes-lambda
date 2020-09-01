@@ -104,7 +104,7 @@ func (c *AccountCost) fetch(period, bucketName string) error {
 
 		if exists {
 			if err := c.Storage.Delete(bucketName, key); err != nil {
-				return fmt.Errorf("s3 delte s3://%s/%s: %v", bucketName, key, err)
+				return fmt.Errorf("s3 delete s3://%s/%s: %v", bucketName, key, err)
 			}
 			log.Printf("deleted s3://%s/%s\n", bucketName, key)
 		}
