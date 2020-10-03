@@ -1,7 +1,5 @@
 # hermes-lambda
 
-lambda function of hermes
-
 ## deploy
 
 ```shell script
