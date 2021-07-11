@@ -1,86 +1,84 @@
-package lambda
+package bigquery
 
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/civil"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
 	"github.com/itsubaki/hermes-lambda/pkg/interface/dataset"
+	"github.com/itsubaki/hermes-lambda/pkg/interface/storage"
 )
 
-func (l *HermesLambda) PutItems() error {
-	if err := l.NewStorage(); err != nil {
+type BigQueryClient struct {
+	Time            time.Time
+	BucketName      string
+	Region          []string
+	Period          []string
+	SuppressWarning bool
+	DataSetName     string
+	Credential      string
+	Pricing         *storage.Pricing
+	AccountCost     *storage.AccountCost
+	Utilization     *storage.Utilization
+}
+
+func New(c *config.Config) *BigQueryClient {
+	return &BigQueryClient{
+		Time:            c.Time,
+		BucketName:      c.BucketName,
+		Region:          c.Region,
+		Period:          c.Period,
+		SuppressWarning: c.SuppressWarning,
+		DataSetName:     c.DataSetName,
+		Credential:      c.Credential,
+	}
+}
+
+func (c *BigQueryClient) NewStorage() error {
+	s3, err := handler.NewStorage()
+	if err != nil {
 		return fmt.Errorf("new storage: %v", err)
 	}
 
-	if err := l.Fetch(); err != nil {
-		return fmt.Errorf("fetch: %v", err)
+	if err := s3.CreateIfNotExists(c.BucketName); err != nil {
+		return fmt.Errorf("create bucket=%s if not exists: %v", c.BucketName, err)
 	}
 
-	items, err := l.Items()
-	if err != nil {
-		return fmt.Errorf("items: %v", err)
+	c.Pricing = &storage.Pricing{Storage: s3}
+	c.AccountCost = &storage.AccountCost{Storage: s3}
+	c.Utilization = &storage.Utilization{Storage: s3, SuppressWarning: c.SuppressWarning}
+
+	return nil
+}
+
+func (c *BigQueryClient) Fetch() error {
+	if err := c.Pricing.Fetch(c.BucketName, c.Region); err != nil {
+		return fmt.Errorf("fetch pricing: %v", err)
 	}
 
-	if err := l.Put(items); err != nil {
-		return fmt.Errorf("put: %v", err)
+	if err := c.AccountCost.Fetch(c.Period, c.BucketName); err != nil {
+		return fmt.Errorf("fetch account cost: %v", err)
+	}
+
+	if err := c.Utilization.Fetch(c.Period, c.BucketName); err != nil {
+		return fmt.Errorf("fetch utilization: %v", err)
 	}
 
 	return nil
 }
 
-func (l *HermesLambda) Items() ([]dataset.Items, error) {
-	out := make([]dataset.Items, 0)
-
-	for _, p := range l.Env.Period {
-		items, err := l.AccountCostItems(p)
-		if err != nil {
-			return out, fmt.Errorf("account cost items: %v", err)
-		}
-		out = append(out, items)
-	}
-
-	for _, p := range l.Env.Period {
-		items, err := l.UtilizationItems(p)
-		if err != nil {
-			return out, fmt.Errorf("utilization items: %v", err)
-		}
-		out = append(out, items)
-	}
-
-	return out, nil
-}
-
-func (l *HermesLambda) Put(items []dataset.Items) error {
-	ds, err := handler.NewDataSet(l.Env.DataSetName, l.Env.Credential)
-	if err != nil {
-		return fmt.Errorf("new dataset: %v", err)
-	}
-	defer ds.Close()
-
-	for _, i := range items {
-		if err := ds.CreateIfNotExists(i.TableMetadata); err != nil {
-			return fmt.Errorf("create table=%#v: %v", i.TableMetadata, err)
-		}
-
-		if err := ds.Put(i.TableMetadata.Name, i.Items); err != nil {
-			return fmt.Errorf("put=%#v: %v", i.TableMetadata, err)
-		}
-	}
-
-	return nil
-}
-
-func (l *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
-	c, err := l.AccountCost.Read(p, l.Env.BucketName)
+func (c *BigQueryClient) AccountCostItems(p string) (dataset.Items, error) {
+	ac, err := c.AccountCost.Read(p, c.BucketName)
 	if err != nil {
 		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
 
 	items := make([]*dataset.AccountCostRow, 0)
-	for _, cc := range c {
+	for _, cc := range ac {
 		u, err := strconv.ParseFloat(cc.UnblendedCost.Amount, 64)
 		if err != nil {
 			return dataset.Items{}, fmt.Errorf("parse float: %v", err)
@@ -107,7 +105,7 @@ func (l *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
 		}
 
 		items = append(items, &dataset.AccountCostRow{
-			Timestamp:        l.Time,
+			Timestamp:        c.Time,
 			AccountID:        cc.AccountID,
 			Description:      cc.Description,
 			Date:             date,
@@ -135,8 +133,8 @@ func (l *HermesLambda) AccountCostItems(p string) (dataset.Items, error) {
 	return out, nil
 }
 
-func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
-	u, err := l.Utilization.Read(p, l.Env.BucketName, l.Env.Region)
+func (c *BigQueryClient) UtilizationItems(p string) (dataset.Items, error) {
+	u, err := c.Utilization.Read(p, c.BucketName, c.Region)
 	if err != nil {
 		return dataset.Items{}, fmt.Errorf("read: %v", err)
 	}
@@ -161,7 +159,7 @@ func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 		}
 
 		items = append(items, &dataset.UtilizationRow{
-			Timestamp:                        l.Time,
+			Timestamp:                        c.Time,
 			AccountID:                        uu.AccountID,
 			Description:                      uu.Description,
 			Region:                           uu.Region,
@@ -191,4 +189,67 @@ func (l *HermesLambda) UtilizationItems(p string) (dataset.Items, error) {
 	}
 
 	return out, nil
+}
+
+func (c *BigQueryClient) Items() ([]dataset.Items, error) {
+	out := make([]dataset.Items, 0)
+
+	for _, p := range c.Period {
+		items, err := c.AccountCostItems(p)
+		if err != nil {
+			return out, fmt.Errorf("account cost items: %v", err)
+		}
+		out = append(out, items)
+	}
+
+	for _, p := range c.Period {
+		items, err := c.UtilizationItems(p)
+		if err != nil {
+			return out, fmt.Errorf("utilization items: %v", err)
+		}
+		out = append(out, items)
+	}
+
+	return out, nil
+}
+
+func (c *BigQueryClient) Put(items []dataset.Items) error {
+	ds, err := handler.NewDataSet(c.DataSetName, c.Credential)
+	if err != nil {
+		return fmt.Errorf("new dataset: %v", err)
+	}
+	defer ds.Close()
+
+	for _, i := range items {
+		if err := ds.CreateIfNotExists(i.TableMetadata); err != nil {
+			return fmt.Errorf("create table=%#v: %v", i.TableMetadata, err)
+		}
+
+		if err := ds.Put(i.TableMetadata.Name, i.Items); err != nil {
+			return fmt.Errorf("put=%#v: %v", i.TableMetadata, err)
+		}
+	}
+
+	return nil
+}
+
+func (c *BigQueryClient) Write() error {
+	if err := c.NewStorage(); err != nil {
+		return fmt.Errorf("new storage: %v", err)
+	}
+
+	if err := c.Fetch(); err != nil {
+		return fmt.Errorf("fetch: %v", err)
+	}
+
+	items, err := c.Items()
+	if err != nil {
+		return fmt.Errorf("items: %v", err)
+	}
+
+	if err := c.Put(items); err != nil {
+		return fmt.Errorf("put: %v", err)
+	}
+
+	return nil
 }

@@ -1,10 +1,11 @@
-package lambda
+package database
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/itsubaki/hermes-lambda/pkg/domain"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
 	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
 	"github.com/itsubaki/hermes/pkg/calendar"
@@ -14,13 +15,35 @@ import (
 	"github.com/itsubaki/hermes/pkg/usage"
 )
 
-func (l *HermesLambda) Store() error {
-	date, err := calendar.Last(l.Env.Period[0])
+type DBClient struct {
+	Period          []string
+	Driver          string
+	DataSource      string
+	Database        string
+	Dir             string
+	Region          []string
+	SuppressWarning bool
+}
+
+func New(c *config.Config) *DBClient {
+	return &DBClient{
+		Period:          c.Period,
+		Driver:          c.Driver,
+		DataSource:      c.DataSource,
+		Database:        c.Database,
+		Dir:             c.Dir,
+		Region:          c.Region,
+		SuppressWarning: c.SuppressWarning,
+	}
+}
+
+func (c *DBClient) Write() error {
+	date, err := calendar.Last(c.Period[0])
 	if err != nil {
-		return fmt.Errorf("calendar.Last period=%s: %v", l.Env.Period, err)
+		return fmt.Errorf("calendar.Last period=%s: %v", c.Period, err)
 	}
 
-	h, err := handler.New(l.Env.Driver, l.Env.DataSource, l.Env.Database)
+	h, err := handler.New(c.Driver, c.DataSource, c.Database)
 	if err != nil {
 		return fmt.Errorf("new handler: %v", err)
 	}
@@ -29,12 +52,12 @@ func (l *HermesLambda) Store() error {
 	// pricing
 	{
 		log.Println("serialize pricing")
-		if err := pricing.Serialize(l.Env.Dir, l.Env.Region); err != nil {
+		if err := pricing.Serialize(c.Dir, c.Region); err != nil {
 			return fmt.Errorf("serialize pricing: %v", err)
 		}
 
 		log.Println("deserialize pricing")
-		price, err := pricing.Deserialize(l.Env.Dir, l.Env.Region)
+		price, err := pricing.Deserialize(c.Dir, c.Region)
 		if err != nil {
 			return fmt.Errorf("deserialize pricing: %v\n", err)
 		}
@@ -69,7 +92,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if l.Env.SuppressWarning {
+				if c.SuppressWarning {
 					continue
 				}
 
@@ -86,35 +109,35 @@ func (l *HermesLambda) Store() error {
 	// account cost
 	{
 		log.Println("serialize account cost")
-		if err := cost.Serialize(l.Env.Dir, date); err != nil {
+		if err := cost.Serialize(c.Dir, date); err != nil {
 			return fmt.Errorf("serialize cost: %v", err)
 		}
 
 		log.Println("deserialize account cost")
-		ac, err := cost.Deserialize(l.Env.Dir, date)
+		ac, err := cost.Deserialize(c.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize cost: %v", err)
 		}
 
 		log.Println("export account cost to database")
 		r := database.NewAccountCostRepository(h)
-		for _, c := range ac {
+		for _, cc := range ac {
 			o := &domain.AccountCost{
-				AccountID:              c.AccountID,
-				Description:            c.Description,
-				Date:                   c.Date,
-				Service:                c.Service,
-				RecordType:             c.RecordType,
-				UnblendedCostAmount:    c.UnblendedCost.Amount,
-				UnblendedCostUnit:      c.UnblendedCost.Unit,
-				BlendedCostAmount:      c.BlendedCost.Amount,
-				BlendedCostUnit:        c.BlendedCost.Unit,
-				AmortizedCostAmount:    c.AmortizedCost.Amount,
-				AmortizedCostUnit:      c.AmortizedCost.Unit,
-				NetAmortizedCostAmount: c.NetAmortizedCost.Amount,
-				NetAmortizedCostUnit:   c.NetAmortizedCost.Unit,
-				NetUnblendedCostAmount: c.NetUnblendedCost.Amount,
-				NetUnblendedCostUnit:   c.NetUnblendedCost.Unit,
+				AccountID:              cc.AccountID,
+				Description:            cc.Description,
+				Date:                   cc.Date,
+				Service:                cc.Service,
+				RecordType:             cc.RecordType,
+				UnblendedCostAmount:    cc.UnblendedCost.Amount,
+				UnblendedCostUnit:      cc.UnblendedCost.Unit,
+				BlendedCostAmount:      cc.BlendedCost.Amount,
+				BlendedCostUnit:        cc.BlendedCost.Unit,
+				AmortizedCostAmount:    cc.AmortizedCost.Amount,
+				AmortizedCostUnit:      cc.AmortizedCost.Unit,
+				NetAmortizedCostAmount: cc.NetAmortizedCost.Amount,
+				NetAmortizedCostUnit:   cc.NetAmortizedCost.Unit,
+				NetUnblendedCostAmount: cc.NetUnblendedCost.Amount,
+				NetUnblendedCostUnit:   cc.NetUnblendedCost.Unit,
 			}
 
 			if err := o.GenID(); err != nil {
@@ -122,7 +145,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if l.Env.SuppressWarning {
+				if c.SuppressWarning {
 					continue
 				}
 
@@ -139,12 +162,12 @@ func (l *HermesLambda) Store() error {
 	// usage quantity
 	{
 		log.Println("serialize usage quantity")
-		if err := usage.Serialize(l.Env.Dir, date); err != nil {
+		if err := usage.Serialize(c.Dir, date); err != nil {
 			return fmt.Errorf("serialize usage quantity: %v", err)
 		}
 
 		log.Println("deserialize usage quantity")
-		u, err := usage.Deserialize(l.Env.Dir, date)
+		u, err := usage.Deserialize(c.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize usage quantity: %v", err)
 		}
@@ -173,7 +196,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if l.Env.SuppressWarning {
+				if c.SuppressWarning {
 					continue
 				}
 
@@ -190,25 +213,25 @@ func (l *HermesLambda) Store() error {
 	// reservation utilization
 	{
 		log.Println("serialize reservation utilization")
-		if err := reservation.Serialize(l.Env.Dir, date); err != nil {
+		if err := reservation.Serialize(c.Dir, date); err != nil {
 			return fmt.Errorf("serialize reservation utilization: %v", err)
 		}
 
 		log.Println("deserialize reservation utilization")
-		res, err := reservation.Deserialize(l.Env.Dir, date)
+		res, err := reservation.Deserialize(c.Dir, date)
 		if err != nil {
 			return fmt.Errorf("deserialize reservation utilization: %v", err)
 		}
 
 		log.Println("deserialize pricing")
-		plist, err := pricing.Deserialize(l.Env.Dir, l.Env.Region)
+		plist, err := pricing.Deserialize(c.Dir, c.Region)
 		if err != nil {
 			return fmt.Errorf("desirialize pricing: %v\n", err)
 		}
 
 		log.Println("add ondemand conversion cost")
 		w := reservation.AddOnDemandConversionCost(plist, res)
-		if !l.Env.SuppressWarning {
+		if !c.SuppressWarning {
 			for _, ww := range w {
 				log.Printf("[WARN] %s", ww)
 			}
@@ -238,7 +261,7 @@ func (l *HermesLambda) Store() error {
 			}
 
 			if r.Exists(o.ID) {
-				if l.Env.SuppressWarning {
+				if c.SuppressWarning {
 					continue
 				}
 

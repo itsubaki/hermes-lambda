@@ -1,11 +1,13 @@
-package environ
+package config
 
 import (
 	"os"
 	"strings"
+	"time"
 )
 
-type Env struct {
+type Config struct {
+	Time             time.Time
 	Dir              string
 	Period           []string
 	Region           []string
@@ -22,9 +24,10 @@ type Env struct {
 	MkrServiceName   string // mackerel
 }
 
-func Default() *Env {
-	return &Env{
-		Dir: "/tmp",
+func Default() *Config {
+	return &Config{
+		Time: time.Now(),
+		Dir:  "/tmp",
 		Period: []string{
 			"1m",
 			"1d",
@@ -40,7 +43,7 @@ func Default() *Env {
 			"Tax",
 		},
 		Output: []string{
-			"mackerel",
+			"database",
 		},
 		BucketName:     "hermes-lambda",
 		Driver:         "mysql",
@@ -52,7 +55,7 @@ func Default() *Env {
 	}
 }
 
-func New() *Env {
+func New() *Config {
 	e := Default()
 
 	dir := os.Getenv("DIR")

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/environ"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda"
-
 	awslambda "github.com/aws/aws-lambda-go/lambda"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/bigquery"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/database"
+	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/mackerel"
 )
 
 func main() {
@@ -23,13 +25,18 @@ func main() {
 	log.Println("finished")
 }
 
-func handle(c context.Context) error {
-	log.Printf("context: %v", c)
+func handle(ctx context.Context) error {
+	log.Printf("context: %v", ctx)
 
-	e := environ.New()
-	log.Printf("env=%#v", e)
+	c := config.New()
+	log.Printf("config=%v\n", c)
 
-	if err := lambda.Default(e).Run(); err != nil {
+	h := lambda.Default(c.Output)
+	h.Add("database", database.New(c))
+	h.Add("mackerel", mackerel.New(c))
+	h.Add("bigquery", bigquery.New(c))
+
+	if err := h.Run(); err != nil {
 		return fmt.Errorf("run: %v", err)
 	}
 
