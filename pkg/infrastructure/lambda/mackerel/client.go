@@ -72,28 +72,6 @@ func (c *MackerelClient) Fetch() error {
 	return nil
 }
 
-func (c *MackerelClient) Write() error {
-	if err := c.NewStorage(); err != nil {
-		return fmt.Errorf("new storage: %v", err)
-	}
-
-	if err := c.Fetch(); err != nil {
-		return fmt.Errorf("fetch: %v", err)
-	}
-
-	values, err := c.MetricValues()
-	if err != nil {
-		return fmt.Errorf("metric values: %v", err)
-	}
-
-	mkr := mackerel.NewClient(c.MkrAPIKey)
-	if err := mkr.PostServiceMetricValues(c.MkrServiceName, values); err != nil {
-		return fmt.Errorf("post service metirc values: %v\n", err)
-	}
-
-	return nil
-}
-
 func (c *MackerelClient) MetricValues() ([]*mackerel.MetricValue, error) {
 	values := make([]*mackerel.MetricValue, 0)
 	for _, p := range c.Period {
@@ -205,4 +183,26 @@ func (c *MackerelClient) MetricValuesGroupByServices(period string) ([]*mackerel
 	}
 
 	return values, nil
+}
+
+func (c *MackerelClient) Write() error {
+	if err := c.NewStorage(); err != nil {
+		return fmt.Errorf("new storage: %v", err)
+	}
+
+	if err := c.Fetch(); err != nil {
+		return fmt.Errorf("fetch: %v", err)
+	}
+
+	values, err := c.MetricValues()
+	if err != nil {
+		return fmt.Errorf("metric values: %v", err)
+	}
+
+	mkr := mackerel.NewClient(c.MkrAPIKey)
+	if err := mkr.PostServiceMetricValues(c.MkrServiceName, values); err != nil {
+		return fmt.Errorf("post service metirc values: %v\n", err)
+	}
+
+	return nil
 }
