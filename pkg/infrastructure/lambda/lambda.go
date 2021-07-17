@@ -22,12 +22,14 @@ func Default(o []string) *HermesLambda {
 }
 
 func (l *HermesLambda) Add(name string, w Writer) {
-	l.Writer[name] = w
+	k := strings.ToLower(name)
+	l.Writer[k] = w
 }
 
 func (l *HermesLambda) Run() error {
 	for _, o := range l.Output {
-		w, ok := l.Writer[strings.ToLower(o)]
+		k := strings.ToLower(o)
+		w, ok := l.Writer[k]
 		if !ok {
 			return fmt.Errorf("output=%s not found", o)
 		}
