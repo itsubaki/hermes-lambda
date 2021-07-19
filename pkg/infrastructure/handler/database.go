@@ -68,7 +68,7 @@ func (h *Handler) QueryRow(query string, args ...interface{}) database.Row {
 }
 
 func (h *Handler) Transact(txFunc func(tx database.Tx) error) (err error) {
-	tx, err := h.DB.Begin()
+	tx, err := h.Begin()
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (h *Handler) Transact(txFunc func(tx database.Tx) error) (err error) {
 		err = tx.Commit()
 	}()
 
-	return txFunc(&Tx{tx})
+	return txFunc(tx)
 }
 
 func (h *Handler) Close() error {
