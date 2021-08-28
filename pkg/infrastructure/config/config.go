@@ -34,9 +34,7 @@ func Default() *Config {
 		},
 		Region: []string{
 			"ap-northeast-1",
-			"ap-southeast-1",
-			"us-west-1",
-			"us-west-2",
+			"us-east-1",
 		},
 		SuppressWarning: true,
 		IgnoreRecordType: []string{

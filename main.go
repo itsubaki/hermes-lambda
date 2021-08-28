@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	awslambda "github.com/aws/aws-lambda-go/lambda"
 	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
@@ -17,11 +18,16 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("start")
 
-	// if err := handle(context.TODO()); err != nil {
-	// 	log.Printf("handle: %v", err)
-	// }
+	if len(os.Getenv("AWS_LAMBDA_FUNCTION_NAME")) > 0 {
+		awslambda.Start(handle)
+		log.Println("finished")
+		return
+	}
 
-	awslambda.Start(handle)
+	if err := handle(context.TODO()); err != nil {
+		log.Printf("handle: %v", err)
+	}
+
 	log.Println("finished")
 }
 
