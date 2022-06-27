@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/dataset"
+	"github.com/itsubaki/hermes-lambda/interface/dataset"
 )
 
 func TestDataSet(t *testing.T) {

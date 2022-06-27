@@ -6,8 +6,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/itsubaki/hermes/pkg/calendar"
-	"github.com/itsubaki/hermes/pkg/cost"
+	"github.com/itsubaki/hermes/calendar"
+	"github.com/itsubaki/hermes/cost"
 )
 
 type AccountCost struct {
@@ -109,15 +109,15 @@ func (c *AccountCost) fetch(period, bucketName string) error {
 			log.Printf("deleted s3://%s/%s\n", bucketName, key)
 		}
 
-		ac, err := cost.Fetch(date[i].Start, date[i].End)
+		ac, err := cost.Fetch(date[i].Start, date[i].End, []string{"NetAmortizedCost", "NetUnblendedCost", "UnblendedCost", "AmortizedCost", "BlendedCost"})
 		if err != nil {
-			return fmt.Errorf("fetch cost (%s, %s): %v\n", date[i].Start, date[i].End, err)
+			return fmt.Errorf("fetch cost (%s, %s): %v", date[i].Start, date[i].End, err)
 		}
 		log.Printf("fetched %s %s", date[i].Start, date[i].End)
 
 		b, err := json.Marshal(ac)
 		if err != nil {
-			return fmt.Errorf("marshal: %v\n", err)
+			return fmt.Errorf("marshal: %v", err)
 		}
 
 		if err := c.Storage.Write(bucketName, key, b); err != nil {

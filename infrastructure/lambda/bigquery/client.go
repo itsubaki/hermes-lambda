@@ -7,10 +7,10 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/civil"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/dataset"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/storage"
+	"github.com/itsubaki/hermes-lambda/infrastructure/config"
+	"github.com/itsubaki/hermes-lambda/infrastructure/handler"
+	"github.com/itsubaki/hermes-lambda/interface/dataset"
+	"github.com/itsubaki/hermes-lambda/interface/storage"
 )
 
 type BigQueryClient struct {

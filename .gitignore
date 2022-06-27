@@ -23,3 +23,6 @@ hermes-lambda
 
 # credential
 credential.json
+
+# Codespaces
+.vscode

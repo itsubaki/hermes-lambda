@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/itsubaki/hermes-lambda/pkg/domain"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
-	"github.com/itsubaki/hermes/pkg/calendar"
-	"github.com/itsubaki/hermes/pkg/cost"
-	"github.com/itsubaki/hermes/pkg/pricing"
-	"github.com/itsubaki/hermes/pkg/reservation"
-	"github.com/itsubaki/hermes/pkg/usage"
+	"github.com/itsubaki/hermes-lambda/domain"
+	"github.com/itsubaki/hermes-lambda/infrastructure/config"
+	"github.com/itsubaki/hermes-lambda/infrastructure/handler"
+	"github.com/itsubaki/hermes-lambda/interface/database"
+	"github.com/itsubaki/hermes/calendar"
+	"github.com/itsubaki/hermes/cost"
+	"github.com/itsubaki/hermes/pricing"
+	"github.com/itsubaki/hermes/reservation"
+	"github.com/itsubaki/hermes/usage"
 )
 
 type DBClient struct {
@@ -59,7 +59,7 @@ func (c *DBClient) Write() error {
 		log.Println("deserialize pricing")
 		price, err := pricing.Deserialize(c.Dir, c.Region)
 		if err != nil {
-			return fmt.Errorf("deserialize pricing: %v\n", err)
+			return fmt.Errorf("deserialize pricing: %v", err)
 		}
 
 		log.Println("export pricing to database")
@@ -109,7 +109,7 @@ func (c *DBClient) Write() error {
 	// account cost
 	{
 		log.Println("serialize account cost")
-		if err := cost.Serialize(c.Dir, date); err != nil {
+		if err := cost.Serialize(c.Dir, date, []string{"NetAmortizedCost", "NetUnblendedCost", "UnblendedCost", "AmortizedCost", "BlendedCost"}); err != nil {
 			return fmt.Errorf("serialize cost: %v", err)
 		}
 
@@ -226,7 +226,7 @@ func (c *DBClient) Write() error {
 		log.Println("deserialize pricing")
 		plist, err := pricing.Deserialize(c.Dir, c.Region)
 		if err != nil {
-			return fmt.Errorf("desirialize pricing: %v\n", err)
+			return fmt.Errorf("desirialize pricing: %v", err)
 		}
 
 		log.Println("add ondemand conversion cost")

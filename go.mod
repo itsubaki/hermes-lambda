@@ -1,21 +1,39 @@
 module github.com/itsubaki/hermes-lambda
 
-go 1.15
+go 1.18
 
 require (
-	cloud.google.com/go v0.53.0
-	cloud.google.com/go/bigquery v1.5.0
-	github.com/aws/aws-lambda-go v1.15.0
-	github.com/aws/aws-sdk-go v1.29.27
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-sql-driver/mysql v1.5.0
-	github.com/itsubaki/hermes v0.0.0-20200829025556-78bd0d6a13fe
-	github.com/jmespath/go-jmespath v0.3.0 // indirect
-	github.com/mackerelio/mackerel-client-go v0.9.1
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	cloud.google.com/go v0.102.1
+	cloud.google.com/go/bigquery v1.34.1
+	github.com/aws/aws-lambda-go v1.32.0
+	github.com/aws/aws-sdk-go v1.44.42
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/itsubaki/hermes v0.0.1
+	github.com/mackerelio/mackerel-client-go v0.21.1
 	github.com/speps/go-hashids v2.0.0+incompatible
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/yaml.v2 v2.2.8 // indirect
+	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2
+)
+
+require (
+	cloud.google.com/go/compute v1.7.0 // indirect
+	cloud.google.com/go/iam v0.3.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	go.opencensus.io v0.23.0 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/tools v0.1.11 // indirect
+	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
+	google.golang.org/api v0.85.0 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f // indirect
+	google.golang.org/grpc v1.47.0 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )

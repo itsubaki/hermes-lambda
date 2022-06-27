@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/itsubaki/hermes/pkg/pricing"
+	"github.com/itsubaki/hermes/pricing"
 )
 
 type Pricing struct {

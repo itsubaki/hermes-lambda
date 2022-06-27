@@ -6,7 +6,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/database"
+	"github.com/itsubaki/hermes-lambda/interface/database"
 )
 
 type Handler struct {

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/handler"
-	"github.com/itsubaki/hermes-lambda/pkg/interface/storage"
+	"github.com/itsubaki/hermes-lambda/infrastructure/config"
+	"github.com/itsubaki/hermes-lambda/infrastructure/handler"
+	"github.com/itsubaki/hermes-lambda/interface/storage"
 	"github.com/mackerelio/mackerel-client-go"
 )
 

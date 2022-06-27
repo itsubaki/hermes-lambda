@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/itsubaki/hermes-lambda/pkg/domain"
+	"github.com/itsubaki/hermes-lambda/domain"
 )
 
 type PricingRepository struct {

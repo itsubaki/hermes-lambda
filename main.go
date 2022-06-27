@@ -7,11 +7,11 @@ import (
 	"os"
 
 	awslambda "github.com/aws/aws-lambda-go/lambda"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/config"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/bigquery"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/database"
-	"github.com/itsubaki/hermes-lambda/pkg/infrastructure/lambda/mackerel"
+	"github.com/itsubaki/hermes-lambda/infrastructure/config"
+	"github.com/itsubaki/hermes-lambda/infrastructure/lambda"
+	"github.com/itsubaki/hermes-lambda/infrastructure/lambda/bigquery"
+	"github.com/itsubaki/hermes-lambda/infrastructure/lambda/database"
+	"github.com/itsubaki/hermes-lambda/infrastructure/lambda/mackerel"
 )
 
 func main() {
