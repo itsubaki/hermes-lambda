@@ -7,7 +7,7 @@ import (
 	"cloud.google.com/go/civil"
 )
 
-type AccountCostRow struct {
+type AccountCost struct {
 	Timestamp        time.Time  `bigquery:"timestamp"`
 	AccountID        string     `bigquery:"account_id"`
 	Description      string     `bigquery:"description"`

@@ -7,7 +7,7 @@ import (
 	"cloud.google.com/go/civil"
 )
 
-type UtilizationRow struct {
+type Reservation struct {
 	Timestamp                        time.Time  `bigquery:"timestamp"`
 	AccountID                        string     `bigquery:"account_id"`
 	Description                      string     `bigquery:"description"`
@@ -25,7 +25,7 @@ type UtilizationRow struct {
 	OnDemandConversionCostPercentage float64    `bigquery:"ondemand_conversion_cost_percentage"`
 }
 
-var UtilizationSchema = bigquery.Schema{
+var ReservationSchema = bigquery.Schema{
 	{Name: "timestamp", Type: bigquery.TimestampFieldType},
 	{Name: "account_id", Type: bigquery.StringFieldType},
 	{Name: "description", Type: bigquery.StringFieldType},
