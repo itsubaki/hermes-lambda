@@ -17,11 +17,7 @@ func Fetch(c *cli.Context) error {
 	}
 
 	for i := range date {
-		cst, err := cost.Fetch(
-			date[i].Start,
-			date[i].End,
-			[]string{"NetAmortizedCost", "NetUnblendedCost", "UnblendedCost", "AmortizedCost", "BlendedCost"},
-		)
+		cst, err := cost.Fetch(date[i].Start, date[i].End, []string{"NetAmortizedCost", "NetUnblendedCost", "UnblendedCost", "AmortizedCost", "BlendedCost"})
 		if err != nil {
 			return fmt.Errorf("fetch cost (%s, %s): %v", date[i].Start, date[i].End, err)
 		}
