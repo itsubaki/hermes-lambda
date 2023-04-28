@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"fmt"
 	"time"
 
 	"cloud.google.com/go/bigquery"
@@ -8,21 +9,19 @@ import (
 )
 
 type Reservation struct {
-	Timestamp                        time.Time  `bigquery:"timestamp"`
-	AccountID                        string     `bigquery:"account_id"`
-	Description                      string     `bigquery:"description"`
-	Region                           string     `bigquery:"region"`
-	InstanceType                     string     `bigquery:"instance_type"`
-	Platform                         string     `bigquery:"platform"`
-	CacheEngine                      string     `bigquery:"cache_engine"`
-	DatabaseEngine                   string     `bigquery:"database_engine"`
-	DeploymentOption                 string     `bigquery:"deployment_option"`
-	Date                             civil.Date `bigquery:"date"`
-	Hours                            float64    `bigquery:"hours"`
-	Num                              float64    `bigquery:"num"`
-	Percentage                       float64    `bigquery:"percentage"`
-	OnDemandConversionCost           float64    `bigquery:"ondemand_conversion_cost"`
-	OnDemandConversionCostPercentage float64    `bigquery:"ondemand_conversion_cost_percentage"`
+	Timestamp        time.Time  `bigquery:"timestamp"`
+	AccountID        string     `bigquery:"account_id"`
+	Description      string     `bigquery:"description"`
+	Region           string     `bigquery:"region"`
+	InstanceType     string     `bigquery:"instance_type"`
+	Platform         string     `bigquery:"platform"`
+	CacheEngine      string     `bigquery:"cache_engine"`
+	DatabaseEngine   string     `bigquery:"database_engine"`
+	DeploymentOption string     `bigquery:"deployment_option"`
+	Date             civil.Date `bigquery:"date"`
+	Hours            float64    `bigquery:"hours"`
+	Num              float64    `bigquery:"num"`
+	Percentage       float64    `bigquery:"percentage"`
 }
 
 var ReservationSchema = bigquery.Schema{
@@ -39,6 +38,14 @@ var ReservationSchema = bigquery.Schema{
 	{Name: "hours", Type: bigquery.FloatFieldType},
 	{Name: "num", Type: bigquery.FloatFieldType},
 	{Name: "percentage", Type: bigquery.FloatFieldType},
-	{Name: "ondemand_conversion_cost", Type: bigquery.FloatFieldType},
-	{Name: "ondemand_conversion_cost_percentage", Type: bigquery.FloatFieldType},
+}
+
+func ReservationMeta(period string) bigquery.TableMetadata {
+	return bigquery.TableMetadata{
+		Name:   fmt.Sprintf("%s_reservation", period),
+		Schema: ReservationSchema,
+		TimePartitioning: &bigquery.TimePartitioning{
+			Field: "date",
+		},
+	}
 }

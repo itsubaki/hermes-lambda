@@ -23,6 +23,7 @@ func New() *cli.App {
 		Name:    "dataset",
 		Aliases: []string{"dsn"},
 		EnvVars: []string{"DATASET_NAME"},
+		Value:   "aws_cost",
 	}
 
 	dsloc := cli.StringFlag{
@@ -36,7 +37,7 @@ func New() *cli.App {
 		Name:    "period",
 		Aliases: []string{"p"},
 		EnvVars: []string{"PERIOD"},
-		Value:   "1d",
+		Value:   "1m",
 	}
 
 	// subcommands
@@ -60,7 +61,7 @@ func New() *cli.App {
 
 	rsvcmd := cli.Command{
 		Name:    "reservation",
-		Aliases: []string{"u"},
+		Aliases: []string{"r"},
 		Subcommands: []*cli.Command{
 			{
 				Name:    "fetch",

@@ -14,16 +14,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# goland
-.idea
-
-# bin
-hermes-lambda.zip
-hermes-lambda
-
 # credential
-credential.json
+credentials.json
 
 # Codespaces
 .vscode
 oryxBuildBinary
+

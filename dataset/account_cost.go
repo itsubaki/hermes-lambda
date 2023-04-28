@@ -1,6 +1,7 @@
 package dataset
 
 import (
+	"fmt"
 	"time"
 
 	"cloud.google.com/go/bigquery"
@@ -33,4 +34,14 @@ var AccountCostSchema = bigquery.Schema{
 	{Name: "amortized_cost", Type: bigquery.FloatFieldType},
 	{Name: "net_amortized_cost", Type: bigquery.FloatFieldType},
 	{Name: "net_unblended_cost", Type: bigquery.FloatFieldType},
+}
+
+func AccountCostMeta(period string) bigquery.TableMetadata {
+	return bigquery.TableMetadata{
+		Name:   fmt.Sprintf("%s_account_cost", period),
+		Schema: AccountCostSchema,
+		TimePartitioning: &bigquery.TimePartitioning{
+			Field: "date",
+		},
+	}
 }
