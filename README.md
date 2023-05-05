@@ -1,5 +1,7 @@
 # hermes-lambda
 
+ * AWS Cost to BigQuery
+
 ```shell
 # AWS
 export AWS_PROFILE=${AWS_PROFILE}
