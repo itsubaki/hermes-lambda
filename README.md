@@ -1,6 +1,6 @@
 # hermes-lambda
 
- * AWS Cost to BigQuery
+ * Transfers AWS cost data to BigQuery
 
 ```shell
 # AWS
