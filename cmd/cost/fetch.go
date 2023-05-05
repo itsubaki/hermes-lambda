@@ -90,7 +90,6 @@ func Item(now time.Time, c cost.AccountCost) (dataset.AccountCost, error) {
 	}
 
 	return dataset.AccountCost{
-		Timestamp:        now,
 		AccountID:        c.AccountID,
 		Description:      c.Description,
 		Date:             date,
@@ -101,5 +100,6 @@ func Item(now time.Time, c cost.AccountCost) (dataset.AccountCost, error) {
 		AmortizedCost:    a,
 		NetAmortizedCost: na,
 		NetUnblendedCost: nu,
+		InsertedAt:       now,
 	}, nil
 }

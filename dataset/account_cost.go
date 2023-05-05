@@ -9,7 +9,6 @@ import (
 )
 
 type AccountCost struct {
-	Timestamp        time.Time  `bigquery:"timestamp"`
 	AccountID        string     `bigquery:"account_id"`
 	Description      string     `bigquery:"description"`
 	Date             civil.Date `bigquery:"date"`
@@ -20,10 +19,10 @@ type AccountCost struct {
 	AmortizedCost    float64    `bigquery:"amortized_cost"`     // unblended + ReservedInstances/12
 	NetAmortizedCost float64    `bigquery:"net_amortized_cost"` // before discount
 	NetUnblendedCost float64    `bigquery:"net_unblended_cost"` // before discount
+	InsertedAt       time.Time  `bigquery:"inserted_at"`
 }
 
 var AccountCostSchema = bigquery.Schema{
-	{Name: "timestamp", Type: bigquery.TimestampFieldType},
 	{Name: "account_id", Type: bigquery.StringFieldType},
 	{Name: "description", Type: bigquery.StringFieldType},
 	{Name: "date", Type: bigquery.DateFieldType},
@@ -34,6 +33,7 @@ var AccountCostSchema = bigquery.Schema{
 	{Name: "amortized_cost", Type: bigquery.FloatFieldType},
 	{Name: "net_amortized_cost", Type: bigquery.FloatFieldType},
 	{Name: "net_unblended_cost", Type: bigquery.FloatFieldType},
+	{Name: "inserted_at", Type: bigquery.TimestampFieldType},
 }
 
 func AccountCostMeta(period string) bigquery.TableMetadata {

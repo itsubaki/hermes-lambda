@@ -9,7 +9,6 @@ import (
 )
 
 type Reservation struct {
-	Timestamp        time.Time  `bigquery:"timestamp"`
 	AccountID        string     `bigquery:"account_id"`
 	Description      string     `bigquery:"description"`
 	Region           string     `bigquery:"region"`
@@ -22,10 +21,10 @@ type Reservation struct {
 	Hours            float64    `bigquery:"hours"`
 	Num              float64    `bigquery:"num"`
 	Percentage       float64    `bigquery:"percentage"`
+	InsertedAt       time.Time  `bigquery:"inserted_at"`
 }
 
 var ReservationSchema = bigquery.Schema{
-	{Name: "timestamp", Type: bigquery.TimestampFieldType},
 	{Name: "account_id", Type: bigquery.StringFieldType},
 	{Name: "description", Type: bigquery.StringFieldType},
 	{Name: "region", Type: bigquery.StringFieldType},
@@ -38,6 +37,7 @@ var ReservationSchema = bigquery.Schema{
 	{Name: "hours", Type: bigquery.FloatFieldType},
 	{Name: "num", Type: bigquery.FloatFieldType},
 	{Name: "percentage", Type: bigquery.FloatFieldType},
+	{Name: "inserted_at", Type: bigquery.TimestampFieldType},
 }
 
 func ReservationMeta(period string) bigquery.TableMetadata {

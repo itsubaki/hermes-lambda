@@ -64,7 +64,6 @@ func Item(now time.Time, u reservation.Utilization) (dataset.Reservation, error)
 	}
 
 	return dataset.Reservation{
-		Timestamp:        now,
 		AccountID:        u.AccountID,
 		Description:      u.Description,
 		Date:             date,
@@ -77,5 +76,6 @@ func Item(now time.Time, u reservation.Utilization) (dataset.Reservation, error)
 		Hours:            u.Hours,
 		Num:              u.Num,
 		Percentage:       u.Percentage,
+		InsertedAt:       now,
 	}, nil
 }
