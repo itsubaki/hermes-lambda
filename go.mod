@@ -5,7 +5,7 @@ go 1.20
 require (
 	cloud.google.com/go v0.102.1
 	cloud.google.com/go/bigquery v1.34.1
-	github.com/itsubaki/hermes v0.0.1
+	github.com/itsubaki/hermes v0.0.2-0.20230517124108-d58dc2dbe086
 	github.com/urfave/cli/v2 v2.3.0
 	google.golang.org/api v0.85.0
 )

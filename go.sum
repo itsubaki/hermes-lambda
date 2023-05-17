@@ -198,6 +198,10 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/itsubaki/hermes v0.0.1 h1://mVkaDctlV/luh0B32yiZLUi7zQlKLM9JbdgIkGZ0Y=
 github.com/itsubaki/hermes v0.0.1/go.mod h1:Z7BQe4kgzTX7WwR5FyacpWopyfop6bfbtr9ftzj9jTs=
+github.com/itsubaki/hermes v0.0.2-0.20230517123249-b30108c44bbf h1:re7TIq3j7k+YiR+4dz0Y657j6qFx1oSnr74xaFSsNnQ=
+github.com/itsubaki/hermes v0.0.2-0.20230517123249-b30108c44bbf/go.mod h1:Z7BQe4kgzTX7WwR5FyacpWopyfop6bfbtr9ftzj9jTs=
+github.com/itsubaki/hermes v0.0.2-0.20230517124108-d58dc2dbe086 h1:0McJX7kiLBSxoByMtR7Ob3sZKiZeTOsZX3Oa4jlsY2I=
+github.com/itsubaki/hermes v0.0.2-0.20230517124108-d58dc2dbe086/go.mod h1:Z7BQe4kgzTX7WwR5FyacpWopyfop6bfbtr9ftzj9jTs=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=

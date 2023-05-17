@@ -31,7 +31,7 @@ func Fetch(c *cli.Context) error {
 
 	now := time.Now()
 	for i := range date {
-		list, err := cost.Fetch(date[i].Start, date[i].End, []string{"NetAmortizedCost", "NetUnblendedCost", "UnblendedCost", "AmortizedCost", "BlendedCost"})
+		list, err := cost.Fetch(date[i].Start, date[i].End)
 		if err != nil {
 			return fmt.Errorf("fetch cost (%s, %s): %v", date[i].Start, date[i].End, err)
 		}
